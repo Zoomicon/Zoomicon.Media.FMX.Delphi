@@ -1,0 +1,50 @@
+package Zoomicon.Media.FMX;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  bindengine,
+  fmx,
+  bindcomp,
+  bindcompfmx,
+  SVGImage32Package,
+  SVGIconImageListFMX,
+  Zoomicon.Generics;
+
+contains
+  Zoomicon.Media.FMX.Models in 'Zoomicon.Media.FMX.Models.pas',
+  Zoomicon.Media.FMX.DataBinding in 'Zoomicon.Media.FMX.DataBinding.pas',
+  Zoomicon.Media.FMX.MediaDisplay in 'Zoomicon.Media.FMX.MediaDisplay.pas',
+  Zoomicon.Media.FMX.MediaPlayerEx in 'Zoomicon.Media.FMX.MediaPlayerEx.pas',
+  Zoomicon.Media.FMX.FileChooser in 'Zoomicon.Media.FMX.FileChooser.pas' {FileChooser: TFrame},
+  Zoomicon.Media.FMX.ClickableGlyph in 'Zoomicon.Media.FMX.ClickableGlyph.pas';
+
+{$Description 'Zoomicon Media FMX Controls'}
+
+end.

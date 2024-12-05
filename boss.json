@@ -1,0 +1,29 @@
+{
+  "package": {
+    "name": "Zoomicon.Media.FMX",
+    "version": "1.0",
+
+    "description": "Media User Interface controls for Delphi FMX",
+
+    "author": "George Birbilis - Zoomicon.com",
+    "license": "MIT",
+
+    "dependencies": {
+         "github.com/zoomicon/zoomicon.generics.delphi": ">0.0.0"
+    },
+
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Zoomicon/Zoomicon.Media.FMX.Delphi"
+    },
+    "main": "Source/Zoomicon.Media.FMX.dproj",
+
+    "projects": [
+      "Source/Zoomicon.Media.FMX.dproj"
+    ],
+
+    "files": [
+      "Source/**/*.pas"
+    ]
+  }
+}
