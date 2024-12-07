@@ -11,7 +11,7 @@ interface
     System.Types, //for TSizeF
     System.UITypes, //for TAlphaColor, TAlphaColorRec
     //
-    //FMX.SVGIconImage, //for TSVGIconImage
+    FMX.SVGIconImage, //for TSVGIconImage
     FMX.Controls, //for TControl
     FMX.Graphics, //for TBitmap
     FMX.Layouts, //for TLayout
