@@ -1,12 +1,27 @@
 unit MediaDisplayDemo;
 
 interface
-
-uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
-  Zoomicon.Media.FMX.MediaDisplay, FMX.Memo.Types, FMX.Controls.Presentation,
-  FMX.ScrollBox, FMX.Memo;
+  {$region 'Used units'}
+  uses
+    System.SysUtils,
+    System.Types,
+    System.UITypes,
+    System.Classes,
+    System.Variants,
+    //
+    FMX.Types,
+    FMX.Controls,
+    FMX.Forms,
+    FMX.Graphics,
+    FMX.Dialogs,
+    FMX.Layouts,
+    FMX.Memo.Types,
+    FMX.Controls.Presentation,
+    FMX.ScrollBox,
+    FMX.Memo,
+    //
+    Zoomicon.Media.FMX.MediaDisplay;
+  {$endregion}
 
 type
   TMediaDisplayDemo1 = class(TForm)
