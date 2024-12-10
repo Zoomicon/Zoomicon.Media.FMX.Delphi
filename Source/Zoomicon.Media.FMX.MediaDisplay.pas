@@ -125,12 +125,13 @@ implementation
   begin
     inherited;
     FSVGLines := TStringList.Create;
-    if not (csLoading in ComponentState) then
-    begin
+
+    //if not (csLoading in ComponentState) then
+    //begin
       AutoSize := DEFAULT_AUTOSIZE;
       ForegroundColor := DEFAULT_FOREGROUND_COLOR;
       SVGText := DEFAULT_SVG_TEXT;
-    end;
+    //end;
   end;
 
   destructor TMediaDisplay.Destroy;

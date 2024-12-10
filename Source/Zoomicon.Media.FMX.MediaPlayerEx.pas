@@ -127,10 +127,14 @@ implementation
 
   constructor TMediaPlayerEx.Create(AOwner: TComponent);
   begin
-    FTimer := TTimer.Create(self);
-    FTimer.Interval := TIMER_INTERVAL;
-    FTimer.OnTimer := HandleTimer;
     inherited;
+
+    FTimer := TTimer.Create(self);
+    with FTimer do
+    begin
+      Interval := TIMER_INTERVAL;
+      OnTimer := HandleTimer;
+    end;
   end;
 
   destructor TMediaPlayerEx.Destroy;
