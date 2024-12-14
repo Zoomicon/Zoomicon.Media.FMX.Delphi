@@ -1,7 +1,7 @@
 {
   "package": {
     "name": "Zoomicon.Media.FMX",
-    "version": "1.0",
+    "version": "3.0",
 
     "description": "Media User Interface controls for Delphi FMX",
 
@@ -9,13 +9,14 @@
     "license": "MIT",
 
     "dependencies": {
-         "github.com/zoomicon/zoomicon.generics.delphi": ">0.0.0"
+         "github.com/zoomicon/zoomicon.generics.delphi": ">=3.0.0"
     },
 
     "repository": {
       "type": "git",
       "url": "https://github.com/Zoomicon/Zoomicon.Media.FMX.Delphi"
     },
+
     "main": "Source/Zoomicon.Media.FMX.dproj",
 
     "projects": [
