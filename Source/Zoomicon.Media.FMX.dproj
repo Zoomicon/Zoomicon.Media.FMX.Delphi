@@ -216,6 +216,7 @@
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="Zoomicon.Media.FMX.ClickableGlyph.pas"/>
+        <DCCReference Include="Zoomicon.Media.FMX.TakePhotoFromCameraActionEx.pas"/>
         <None Include="boss.json"/>
         <None Include="..\boss.json"/>
         <None Include="..\LICENSE.txt"/>
