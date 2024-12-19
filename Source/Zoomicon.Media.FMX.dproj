@@ -204,9 +204,9 @@
         <DCCReference Include="fmx.dcp"/>
         <DCCReference Include="bindcomp.dcp"/>
         <DCCReference Include="bindcompfmx.dcp"/>
+        <DCCReference Include="Zoomicon.Generics.dcp"/>
         <DCCReference Include="SVGImage32Package.dcp"/>
         <DCCReference Include="SVGIconImageListFMX.dcp"/>
-        <DCCReference Include="Zoomicon.Generics.dcp"/>
         <DCCReference Include="Zoomicon.Media.FMX.Models.pas"/>
         <DCCReference Include="Zoomicon.Media.FMX.DataBinding.pas"/>
         <DCCReference Include="Zoomicon.Media.FMX.MediaDisplay.pas"/>

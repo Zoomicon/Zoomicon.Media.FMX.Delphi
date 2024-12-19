@@ -33,9 +33,9 @@ requires
   fmx,
   bindcomp,
   bindcompfmx,
+  Zoomicon.Generics,
   SVGImage32Package,
-  SVGIconImageListFMX,
-  Zoomicon.Generics;
+  SVGIconImageListFMX;
 
 contains
   Zoomicon.Media.FMX.Models in 'Zoomicon.Media.FMX.Models.pas',
