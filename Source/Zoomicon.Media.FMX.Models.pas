@@ -6,8 +6,12 @@ unit Zoomicon.Media.FMX.Models;
 
 interface
   uses
+    System.Classes, //for TStream
+    System.Types, //for TSizeF
+    System.UITypes, //for TAlphaColor
+    FMX.Graphics, //for TBitmap
     FMX.Media, //for TMediaTime
-    System.Classes; //for TStream
+    FMX.Objects; //for TImageWrapMode
 
   {$REGION 'IMediaPlayer'}
 
@@ -80,11 +84,39 @@ interface
 
   type
     IMediaDisplay = interface
+      {AutoSize}
+      procedure SetAutoSize(const Value: Boolean);
+      procedure DoAutoSize;
+      function GetContentSize: TSizeF;
+
+      {WrapMode}
+      procedure SetWrapMode(const Value: TImageWrapMode);
+      procedure DoWrap;
+
+      {ForegroundColor}
+      procedure SetForegroundColor(const Value: TAlphaColor);
+      procedure ApplyForegroundColor;
+
+      {Bitmap}
+      function GetBitmap: TBitmap;
+      procedure SetBitmap(const Value: TBitmap);
+
+      {SVGText}
+      function GetSVGText: String;
+      procedure SetSVGText(const Value: String);
+
+      {SVGLines}
+      function GetSVGLines: TStrings;
+      procedure SetSVGLines(const Value: TStrings);
+
       procedure Load(const Stream: TStream; const ContentFormat: String);
-      //
       procedure LoadBitmap(const Stream: TStream; const ContentFormat: String);
       procedure LoadSVG(const Stream: TStream);
       //TODO: add more using Skia4Delphi
+
+      property Bitmap: TBitmap read GetBitmap write SetBitmap;
+      property SVGText: String read GetSVGText write SetSVGText;
+      property SVGLines: TStrings read GetSVGLines write SetSVGLines;
     end;
 
   {$ENDREGION}
