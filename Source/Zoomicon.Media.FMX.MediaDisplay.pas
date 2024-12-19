@@ -17,6 +17,7 @@ interface
     FMX.Layouts, //for TLayout
     FMX.Media, //for TMediaTime
     FMX.Objects, //for TImage, TImageWrapMode
+    FMX.Surfaces, //for TBitmapSurface
     FMX.Types, //for RegisterFmxClasses
     //
     Zoomicon.Media.FMX.Models; //for IMediaDisplay
@@ -62,16 +63,17 @@ interface
       procedure ApplyForegroundColor; virtual;
 
       {Bitmap}
-      function GetBitmap: TBitmap;
-      procedure SetBitmap(const Value: TBitmap);
+      function GetBitmap: TBitmap; virtual;
+      procedure SetBitmap(const Value: TBitmap); overload; virtual;
+      procedure SetBitmap(const Value: TBitmapSurface); overload; virtual;
 
       {SVGText}
-      function GetSVGText: String;
-      procedure SetSVGText(const Value: String);
+      function GetSVGText: String; virtual;
+      procedure SetSVGText(const Value: String); virtual;
 
       {SVGLines}
-      function GetSVGLines: TStrings;
-      procedure SetSVGLines(const Value: TStrings);
+      function GetSVGLines: TStrings; virtual;
+      procedure SetSVGLines(const Value: TStrings); virtual;
 
     public
       class function IsContentFormatBitmap(const ContentFormat: String): Boolean;
@@ -80,13 +82,13 @@ interface
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
 
-      procedure Load(const Stream: TStream; const ContentFormat: String);
-      procedure LoadBitmap(const Stream: TStream; const ContentFormat: String);
-      procedure LoadSVG(const Stream: TStream);
+      procedure Load(const Stream: TStream; const ContentFormat: String); virtual;
+      procedure LoadBitmap(const Stream: TStream; const ContentFormat: String); virtual;
+      procedure LoadSVG(const Stream: TStream); virtual;
       //TODO: add more using Skia4Delphi
 
-     function HasNonEmptyBitmap: Boolean;
-     function HasNonDefaultSVG: Boolean;
+     function HasNonEmptyBitmap: Boolean; virtual;
+     function HasNonDefaultSVG: Boolean; virtual;
 
     published
       const
@@ -269,7 +271,7 @@ implementation
 
   procedure TMediaDisplay.InitContent;
   begin
-      DoWrap;
+    DoWrap;
 
     if FAutoSize then
       DoAutoSize;
@@ -308,6 +310,16 @@ implementation
       SetPresenter(nil)
     else
       SetBitmapPresenter.Bitmap := Value; //this does "Assign" internally and copies the Bitmap
+
+    InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
+  end;
+
+  procedure TMediaDisplay.SetBitmap(const Value: TBitmapSurface);
+  begin
+    if (Value = nil) then
+      SetPresenter(nil)
+    else
+      SetBitmapPresenter.Bitmap.Assign(Value); //we can Assign TBitmapSurfaces to TBitmaps
 
     InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
   end;

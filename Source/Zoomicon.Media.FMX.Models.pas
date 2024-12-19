@@ -11,6 +11,7 @@ interface
     System.UITypes, //for TAlphaColor
     FMX.Graphics, //for TBitmap
     FMX.Media, //for TMediaTime
+    FMX.Surfaces, //for TBitmapSurface
     FMX.Objects; //for TImageWrapMode
 
   {$REGION 'IMediaPlayer'}
@@ -99,7 +100,8 @@ interface
 
       {Bitmap}
       function GetBitmap: TBitmap;
-      procedure SetBitmap(const Value: TBitmap);
+      procedure SetBitmap(const Value: TBitmap); overload;
+      procedure SetBitmap(const Value: TBitmapSurface); overload;
 
       {SVGText}
       function GetSVGText: String;
