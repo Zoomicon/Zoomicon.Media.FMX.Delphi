@@ -27,6 +27,7 @@ implementation
     System.Classes, //for GroupDescendentsWith, RegisterComponents
     System.Types, //for TClassicStringDynArray
     FMX.Types, //for RegisterFmxClasses, log.d
+    System.SysUtils, //to avoid [dcc32 Hint] H2443 Inline function 'Log.d' has not been expanded because unit 'System.SysUtils' is not specified in USES list
     System.Permissions; // Required for permission handling
 
   {$REGION 'TTakePhotoCameraActionEx' -----------------------------------------}

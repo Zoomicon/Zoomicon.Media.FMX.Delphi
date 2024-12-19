@@ -13,6 +13,6 @@
 	],
 
 	"dependencies": {
-		"github.com/zoomicon/zoomicon.media.fmx.delphi": ">=3.4"
+		"github.com/zoomicon/zoomicon.media.fmx.delphi": ">=3.5"
 	}
 }
