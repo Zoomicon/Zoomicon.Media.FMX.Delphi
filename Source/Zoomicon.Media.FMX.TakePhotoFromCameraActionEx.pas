@@ -24,6 +24,10 @@ interface
 
 implementation
   uses
+    {$IF DEFINED(ANDROID)}
+    Androidapi.Helpers, //for JStringToString
+    Androidapi.JNI.Os, //for TJManifest_permission
+    {$ENDIF}
     System.Classes, //for GroupDescendentsWith, RegisterComponents
     System.Types, //for TClassicStringDynArray
     FMX.Types, //for RegisterFmxClasses, log.d
@@ -46,7 +50,7 @@ implementation
     //enhancement, doing automatic permission checking if RequestPermission=true
     {$IF DEFINED(ANDROID)}
     log.d('Info', Self, 'TTakePhotoFromCameraActionEx', 'Requesting permission');
-    PermissionsService.RequestPermissions(['android.permission.CAMERA'],
+    PermissionsService.RequestPermissions([JStringToString(TJManifest_permission.JavaClass.CAMERA)], //TJManifest_permission.JavaClass.CAMERA = 'android.permission.CAMERA'
       procedure(const APermissions: TClassicStringDynArray; const AGrantResults: TClassicPermissionStatusDynArray)
       begin
         if (Length(AGrantResults) > 0) and (AGrantResults[0] = TPermissionStatus.Granted) then //check if permission granted
@@ -59,7 +63,7 @@ implementation
             end);
       end);
     {$ELSE}
-    //TODO: add permissions checking for iOS too
+    //TODO: add permissions checking for iOS too? Doesn't seem to be needed currently (Dec2024)
     //...if TAVCaptureDevice.OCClass.authorizationStatusForMediaType(AVMediaTypeVideo) <> AVAuthorizationStatusAuthorized then begin TAVCaptureDevice.OCClass.requestAccessForMediaType(AVMediaTypeVideo, procedure(granted: Boolean) begin ...end)
 
     log.d('Info', Self, 'TTakePhotoFromCameraActionEx', 'Captruring photo');

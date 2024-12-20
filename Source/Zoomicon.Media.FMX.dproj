@@ -205,8 +205,6 @@
         <DCCReference Include="bindcomp.dcp"/>
         <DCCReference Include="bindcompfmx.dcp"/>
         <DCCReference Include="Zoomicon.Generics.dcp"/>
-        <DCCReference Include="SVGImage32Package.dcp"/>
-        <DCCReference Include="SVGIconImageListFMX.dcp"/>
         <DCCReference Include="Zoomicon.Media.FMX.Models.pas"/>
         <DCCReference Include="Zoomicon.Media.FMX.DataBinding.pas"/>
         <DCCReference Include="Zoomicon.Media.FMX.MediaDisplay.pas"/>
@@ -217,10 +215,6 @@
         </DCCReference>
         <DCCReference Include="Zoomicon.Media.FMX.ClickableGlyph.pas"/>
         <DCCReference Include="Zoomicon.Media.FMX.TakePhotoFromCameraActionEx.pas"/>
-        <None Include="boss.json"/>
-        <None Include="..\boss.json"/>
-        <None Include="..\LICENSE.txt"/>
-        <None Include="..\README.md"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
