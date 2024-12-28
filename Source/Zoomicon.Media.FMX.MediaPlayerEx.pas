@@ -381,6 +381,20 @@ implementation
 
   procedure TMediaPlayerEx.SetStream(const Value: TStream);
   begin
+    //--- Clear any previous content
+
+    //first stop player and release file it may be holding locked
+    Filename := ''; //this will call Clear (this also calls Stop in our implementation (and via "inherited Clear" does FreeAndNil(Media) and [at the ancestor level] Filename:=''))
+
+    //clear temp file (backing assigned stream), if any
+    if Assigned(Stream) then
+     begin
+       TFile.Delete(Filename); //delete temp file we had allocated for Stream
+       FStream := nil; //do not free FStream, we hadn't created it
+     end;
+
+    //--- Set new content
+
     if Assigned(Value) then
     begin
       var TempFileName := TPath.GetTempFileName;
@@ -391,14 +405,7 @@ implementation
         FreeAndNil(F);
       end;
       Filename := TempFilename;
-    end
-    else
-      begin
-      if Assigned(Stream) then
-        TFile.Delete(Filename); //delete temp file we had allocated for Stream
-      FStream := nil; //do not free FStream, we hadn't created it
-      Filename := ''; //this will call Clear
-      end;
+    end;
   end;
 
   {$endregion}
