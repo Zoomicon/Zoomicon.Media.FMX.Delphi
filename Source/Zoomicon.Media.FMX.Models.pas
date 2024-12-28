@@ -72,6 +72,7 @@ interface
   {$REGION 'IMediaDisplay'}
 
   const
+
     {$IF DEFINED(MSWINDOWS)}
     EXT_BMP = '.bmp';
     {$ENDIF}
@@ -79,7 +80,51 @@ interface
     EXT_PNG = '.png';
     EXT_JPG = '.jpg';
     EXT_JPEG = '.jpeg';
-    //TODO: add more using Skia4Delphi
+
+    {$region 'with Skia4Delphi'}
+    //TODO: Skia4Delphi library registers the following codecs (https://github.com/skia4delphi/skia4delphi?tab=readme-ov-file#image-formats)
+    //  VCL: .svg, .webp, .wbmp and raw images (.arw, .cr2, .dng, .nef, .nrw, .orf, .raf, .rw2, .pef and .srw).
+    //  FMX: .bmp, .gif, .ico, .webp, .wbmp and raw images (.arw, .cr2, .dng, .nef, .nrw, .orf, .raf, .rw2, .pef and .srw).
+    //
+    EXT_LOTTIE = '.lottie';
+    EXT_LOTTIE_JSON = '.json';
+    EXT_TELEGRAM_STICKER = '.tgs';
+    EXT_GIF = '.gif'; //also supports animation
+    EXT_WEBP = '.webp'; //also supports animation
+
+    (*
+    The Skia4Delphi library supports many image formats (https://github.com/skia4delphi/skia4delphi?tab=readme-ov-file#codecs):
+
+    Supported formats for decoding
+
+    Image Format    Extensions
+    Bitmap  .bmp
+    GIF .gif
+    Icon    .ico
+    JPEG    .jpg, .jpeg
+    PNG .png
+    Raw Adobe DNG Digital Negative  .dng
+    Raw Canon   .cr2
+    Raw Fujifilm RAF    .raf
+    Raw Nikon   .nef, .nrw
+    Raw Olympus ORF .orf
+    Raw Panasonic   .rw2
+    Raw Pentax PEF  .pef
+    Raw Samsung SRW .srw
+    Raw Sony    .arw
+    WBMP    .wbmp
+    WebP    .webp
+    Note: Raw images are limited to non-windows platforms
+
+    Supported formats for encoding
+
+    Image Format    Extensions
+    JPEG    .jpg, .jpeg
+    PNG .png
+    WebP    .webp
+    *)
+
+    {$endregion}
 
     SVG_BLANK = '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
 
@@ -113,8 +158,8 @@ interface
 
       procedure Load(const Stream: TStream; const ContentFormat: String);
       procedure LoadBitmap(const Stream: TStream; const ContentFormat: String);
-      procedure LoadSVG(const Stream: TStream);
-      //TODO: add more using Skia4Delphi
+      procedure LoadSVG(const Stream: TStream; const ContentFormat: String);
+      procedure LoadAnimation(const Stream: TStream; const ContentFormat: String);
 
       property Bitmap: TBitmap read GetBitmap write SetBitmap;
       property SVGText: String read GetSVGText write SetSVGText;

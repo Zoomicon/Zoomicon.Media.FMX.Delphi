@@ -37,7 +37,9 @@ requires
   fmx,
   bindcomp,
   bindcompfmx,
-  Zoomicon.Generics;
+  Zoomicon.Generics,
+  Skia.Package.RTL,
+  Skia.Package.FMX;
 
 contains
   Zoomicon.Media.FMX.Models in 'Zoomicon.Media.FMX.Models.pas',

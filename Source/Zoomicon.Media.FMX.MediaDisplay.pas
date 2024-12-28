@@ -11,14 +11,15 @@ interface
     System.Types, //for TSizeF
     System.UITypes, //for TAlphaColor, TAlphaColorRec
     //
-    FMX.SVGIconImage, //for TSVGIconImage
-    FMX.Controls, //for TControl
-    FMX.Graphics, //for TBitmap
-    FMX.Layouts, //for TLayout
-    FMX.Media, //for TMediaTime
-    FMX.Objects, //for TImage, TImageWrapMode
-    FMX.Surfaces, //for TBitmapSurface
     FMX.Types, //for RegisterFmxClasses
+    FMX.Layouts, //for TLayout
+    FMX.Controls, //for TControl
+    FMX.Media, //for TMediaTime
+    FMX.Graphics, //for TBitmap
+    FMX.Surfaces, //for TBitmapSurface
+    FMX.Objects, //for TImage, TImageWrapMode
+    FMX.SVGIconImage, //for TSVGIconImage
+    FMX.Skia, //for TSkAnimatedImage
     //
     Zoomicon.Media.FMX.Models; //for IMediaDisplay
   {$endregion}
@@ -44,6 +45,7 @@ interface
       //Note: calling the following as SetXX instead of GetXX since they cause side-effects (they call SetPresenter if needed)
       function SetPresenter(const ContentFormat: String): TControl; overload; virtual;
       function SetSVGPresenter: TSVGIconImage; virtual;
+      function SetAnimationPresenter: TSkAnimatedImage; virtual;
       function SetBitmapPresenter: TImage; virtual;
 
       {Content}
@@ -76,19 +78,20 @@ interface
       procedure SetSVGLines(const Value: TStrings); virtual;
 
     public
-      class function IsContentFormatBitmap(const ContentFormat: String): Boolean;
-      class function IsContentFormatSVG(const ContentFormat: String): Boolean;
+      class function IsContentFormatBitmap(const ContentFormat: String): Boolean; virtual;
+      class function IsContentFormatSVG(const ContentFormat: String): Boolean; virtual;
+      class function IsContentFormatAnimation(const ContentFormat: String): Boolean; virtual;
 
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
 
       procedure Load(const Stream: TStream; const ContentFormat: String); virtual;
       procedure LoadBitmap(const Stream: TStream; const ContentFormat: String); virtual;
-      procedure LoadSVG(const Stream: TStream); virtual;
-      //TODO: add more using Skia4Delphi
+      procedure LoadSVG(const Stream: TStream; const ContentFormat: String); virtual;
+      procedure LoadAnimation(const Stream: TStream; const ContentFormat: String); virtual;
 
-     function HasNonEmptyBitmap: Boolean; virtual;
-     function HasNonDefaultSVG: Boolean; virtual;
+      function HasNonEmptyBitmap: Boolean; virtual;
+      function HasNonDefaultSVG: Boolean; virtual;
 
     published
       const
@@ -180,12 +183,23 @@ implementation
 
   function TMediaDisplay.SetPresenter(const ContentFormat: String): TControl;
   begin
-    if IsContentFormatSVG(ContentFormat) then
+    if IsContentFormatSVG(ContentFormat) then //checking for SVG first since it's less file extensions to check
       result := SetSVGPresenter
+    else if IsContentFormatAnimation(ContentFormat) then
+      result := SetAnimationPresenter
     else if IsContentFormatBitmap(ContentFormat) then
       result := SetBitmapPresenter
     else
       result := nil;
+  end;
+
+  function TMediaDisplay.SetBitmapPresenter: TImage;
+  begin
+    if (Presenter is TSVGIconImage) or
+       not (Presenter is TImage) then //since TSVGIconImage is descending from TImage, checking it first (it isn't compatible with BitmapImages)
+      Presenter := TImage.Create(Self);
+
+    result := Presenter as TImage;
   end;
 
   function TMediaDisplay.SetSVGPresenter: TSVGIconImage;
@@ -196,12 +210,12 @@ implementation
     result := Presenter as TSVGIconImage;
   end;
 
-  function TMediaDisplay.SetBitmapPresenter: TImage;
+  function TMediaDisplay.SetAnimationPresenter: TSkAnimatedImage;
   begin
-    if (Presenter is TSVGIconImage) or not (Presenter is TImage) then //since TSVGIconImage is descending from TImage, checking it first (it isn't compatible with BitmapImages)
-      Presenter := TImage.Create(Self);
+    if not (Presenter is TSkAnimatedImage) then
+      Presenter := TSkAnimatedImage.Create(Self);
 
-    result := Presenter as TImage;
+    result := Presenter as TSkAnimatedImage;
   end;
 
   {$endregion}
@@ -223,6 +237,8 @@ implementation
   begin
     if (Presenter is TImage) then //this also covers TSVGIconImage (descends from TImage)
       result := (Presenter as TImage).Bitmap.Size //TODO: does this fail with TSVGIconImage?
+    else if (Presenter is TSkAnimatedImage) then
+      result := (Presenter as TSkAnimatedImage).OriginalSize //if content is assigned will ask codec for size
     else
       result := TSizeF.Create(0, 0);
   end;
@@ -374,11 +390,6 @@ implementation
 
   {$region 'IsContentFormat'}
 
-  class function TMediaDisplay.IsContentFormatSVG(const ContentFormat: String): Boolean;
-  begin
-    result := (ContentFormat = EXT_SVG);
-  end;
-
   class function TMediaDisplay.IsContentFormatBitmap(const ContentFormat: String): Boolean;
   begin
     result :=
@@ -390,22 +401,55 @@ implementation
       (ContentFormat = EXT_JPG);
   end;
 
+  class function TMediaDisplay.IsContentFormatAnimation(const ContentFormat: String): Boolean;
+  begin
+    result :=
+      (ContentFormat = EXT_LOTTIE) or
+      (ContentFormat = EXT_LOTTIE_JSON) or
+      (ContentFormat = EXT_TELEGRAM_STICKER) or
+      (ContentFormat = EXT_GIF) or
+      (ContentFormat = EXT_WEBP);
+  end;
+
+  class function TMediaDisplay.IsContentFormatSVG(const ContentFormat: String): Boolean;
+  begin
+    result := (ContentFormat = EXT_SVG); //TODO: add support for .SVGZ (Gzipped SVG)
+  end;
+  
   {$endregion}
 
   {$region 'Load'}
 
   procedure TMediaDisplay.Load(const Stream: TStream; const ContentFormat: String);
   begin
+     //checking for SVG first since it's less file extensions to check
     if IsContentFormatSVG(ContentFormat) then
-      LoadSVG(Stream)
+      LoadSVG(Stream, ContentFormat)
+    else if IsContentFormatAnimation(ContentFormat) then //since some bitmap formats (like GIF, WEBP) also support animation, better check first
+      LoadAnimation(Stream, ContentFormat)
     else if IsContentFormatBitmap(ContentFormat) then
       LoadBitmap(Stream, ContentFormat)
     else
       raise Exception.CreateFmt(MSG_UNKNOWN_CONTENT_FORMAT, [ContentFormat]);
   end;
 
-  procedure TMediaDisplay.LoadSVG(const Stream: TStream);
+  procedure TMediaDisplay.LoadBitmap(const Stream: TStream; const ContentFormat: String);
   begin
+    if not IsContentFormatBitmap(ContentFormat) then //TODO: this causes rechecking of file extension when called via Load
+      exit;
+
+    const LImage = SetBitmapPresenter;
+
+    LImage.Bitmap.LoadFromStream(Stream);
+
+    InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
+  end;
+
+  procedure TMediaDisplay.LoadSVG(const Stream: TStream; const ContentFormat: String);
+  begin //TODO: add support for SVG (Gzipped SVG)
+    if not IsContentFormatSVG(ContentFormat) then //TODO: this causes rechecking of file extension when called via Load
+      exit;
+
     SetSVGPresenter;
 
     //SVGText := ReadAllText(Stream); //TODO: using this as workaround since LoadFromStream doesn't seem to be compilable anymore //TODO: see why it fails (stack pointer corruption?)
@@ -419,14 +463,14 @@ implementation
     end;
   end;
 
-  procedure TMediaDisplay.LoadBitmap(const Stream: TStream; const ContentFormat: String);
+  procedure TMediaDisplay.LoadAnimation(const Stream: TStream; const ContentFormat: String);
   begin
-    if (ContentFormat <> EXT_PNG) and (ContentFormat <> EXT_JPEG) and (ContentFormat <> EXT_JPG) then
+    if not IsContentFormatAnimation(ContentFormat) then //TODO: this causes rechecking of file extension when called via Load
       exit;
 
-    const LImage = SetBitmapPresenter;
+    const LAnimation = SetAnimationPresenter;
 
-    LImage.Bitmap.LoadFromStream(Stream);
+    LAnimation.LoadFromStream(Stream);
 
     InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
   end;
