@@ -380,8 +380,11 @@ implementation
   end;
 
   procedure TMediaPlayerEx.SetStream(const Value: TStream);
+  var tempFileName: String;
   begin
     //--- Clear any previous content
+
+     tempFileName:= Filename; //keep any temp file's path before clearing it
 
     //first stop player and release file it may be holding locked
     Filename := ''; //this will call Clear (this also calls Stop in our implementation (and via "inherited Clear" does FreeAndNil(Media) and [at the ancestor level] Filename:=''))
@@ -389,7 +392,7 @@ implementation
     //clear temp file (backing assigned stream), if any
     if Assigned(Stream) then
      begin
-       TFile.Delete(Filename); //delete temp file we had allocated for Stream
+       TFile.Delete(tempFileName); //delete temp file we had allocated for Stream //Note: must do this after stop and clear (Filename:='' does that above)
        FStream := nil; //do not free FStream, we hadn't created it
      end;
 
@@ -397,7 +400,7 @@ implementation
 
     if Assigned(Value) then
     begin
-      var TempFileName := TPath.GetTempFileName;
+      TempFileName := TPath.GetTempFileName;
       var F := TFileStream.Create(TempFilename, fmCreate or fmOpenWrite {or fmShareDenyNone}); //TODO: fmShareDenyNote probably needed for Android
       try
         F.CopyFrom(Value);
