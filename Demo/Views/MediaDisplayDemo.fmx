@@ -4,6 +4,7 @@ object MediaDisplayDemo1: TMediaDisplayDemo1
   Caption = 'Form2'
   ClientHeight = 480
   ClientWidth = 640
+  Visible = True
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]

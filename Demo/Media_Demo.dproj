@@ -108,7 +108,7 @@
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
         <SanitizedProjectName>Media_Demo</SanitizedProjectName>
-        <DCC_UnitSearchPath>modules\.dcp;modules\.dcu;modules;modules\zoomicon.media.fmx.delphi\Demo\Views;modules\zoomicon.media.fmx.delphi\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>modules\.dcp;modules\.dcu;modules;modules\zoomicon.generics.delphi\Source\Collections;modules\zoomicon.generics.delphi\Source\Factories;modules\zoomicon.generics.delphi\Source\Functors;modules\zoomicon.media.fmx.delphi\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <DCC_UsePackage>fmx;DbxCommonDriver;bindengine;IndyIPCommon;FrameStandPackage_11_1;FireDACCommonDriver;IndyProtocols;RadiantShapesFmx_Design;IndyIPClient;dbxcds;FmxTeeUI;bindcompfmx;Zoomicon.Helpers.FMX;ibmonitor;FireDACSqliteDriver;DbxClientDriver;soapmidas;fmxFireDAC;dbexpress;Zoomicon.Zooming.FMX;inet;Zoomicon.Media.FMX;fmxase;dbrtl;CustomIPTransport;Zoomicon.Helpers.RTL;DBXInterBaseDriver;Zoomicon.Manipulation.FMX;IndySystem;RadiantShapesFmx;ibxbindings;bindcomp;FireDACCommon;inetstn;IndyCore;RESTBackendComponents;bindcompdbx;rtl;RESTComponents;DBXSqliteDriver;IndyIPServer;dsnapxml;Zoomicon.Introspection.FMX;Zoomicon.Generics;Zoomicon.Downloader;FireDAC;xmlrtl;tethering;ibxpress;dsnap;CloudService;FMXTee;soaprtl;Zoomicon.Cache;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
@@ -279,6 +279,8 @@
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
@@ -299,15 +301,14 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <DCCReference Include="Views\MediaPlayerDemo.pas">
+            <Form>MediaPlayerDemo1</Form>
+        </DCCReference>
         <DCCReference Include="Views\MediaDisplayDemo.pas">
             <Form>MediaDisplayDemo1</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
-        <DCCReference Include="..\Zoomicon.Media.FMX.MediaDisplay.pas"/>
-        <DCCReference Include="..\Zoomicon.Media.FMX.Models.pas"/>
-        <DCCReference Include="Views\MediaPlayerDemo.pas">
-            <Form>Form1</Form>
-            <FormType>fmx</FormType>
+        <DCCReference Include="Views\FileChooserDemo.pas">
+            <Form>FileChooserDemo1</Form>
         </DCCReference>
         <None Include="boss.json"/>
         <BuildConfiguration Include="Base">

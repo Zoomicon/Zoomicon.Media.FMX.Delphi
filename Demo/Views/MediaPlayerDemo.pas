@@ -11,7 +11,7 @@ uses
   Zoomicon.Media.FMX.MediaPlayerEx;
 
 type
-  TForm1 = class(TForm)
+  TMediaPlayerDemo1 = class(TForm)
     MediaPlayerEx1: TMediaPlayerEx;
     MediaPlayerControl1: TMediaPlayerControl;
   private
@@ -21,7 +21,7 @@ type
   end;
 
 var
-  Form1: TForm1;
+  MediaPlayerDemo1: TMediaPlayerDemo1;
 
 implementation
 
