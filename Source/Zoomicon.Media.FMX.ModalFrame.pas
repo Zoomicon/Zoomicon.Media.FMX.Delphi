@@ -51,6 +51,8 @@ interface
 
     end;
 
+    procedure Register;
+
 implementation
 
   {$R *.fmx}
@@ -156,5 +158,24 @@ implementation
   end;
 
   {$endregion}
+
+  {$REGION 'Registration' -----------------------------------------------------}
+
+  procedure RegisterSerializationClasses;
+  begin
+    RegisterFmxClasses([TModalFrame]);
+  end;
+
+  procedure Register;
+  begin
+    GroupDescendentsWith(TModalFrame, TFrame);
+    RegisterSerializationClasses;
+    RegisterComponents('Zoomicon', [TModalFrame]);
+  end;
+
+  {$ENDREGION}
+
+initialization
+  RegisterSerializationClasses; //don't call Register here, it's called by the IDE automatically on a package installation (fails at runtime)
 
 end.
