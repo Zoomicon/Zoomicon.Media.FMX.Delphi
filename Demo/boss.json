@@ -8,7 +8,7 @@
 		"Media_Demo.dproj"
 	],
 	"dependencies": {
-		"github.com/zoomicon/zoomicon.generics.delphi": ">=3.00",
-		"github.com/zoomicon/zoomicon.media.fmx.delphi": ">=3.10"
+		"github.com/zoomicon/zoomicon.generics.delphi": ">=3.0",
+		"github.com/zoomicon/zoomicon.media.fmx.delphi": ">=4.0"
 	}
 }
