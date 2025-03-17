@@ -7,6 +7,10 @@ unit Zoomicon.Media.FMX.FullScreen;
 interface
   uses FMX.Forms;
 
+  {$IF DEFINED(MSWINDOWS)}
+  procedure SetFullscreen_WindowsFix(const AForm: TCommonCustomForm; const AValue: Boolean);
+  {$ENDIF}
+
   {$region 'TFullScreenServiceiOS'}
   (*
   Description: FireMonkey TPlatformServices - IFMXFullScreenWindowService for iOS
@@ -62,7 +66,7 @@ implementation
 
   var FFullScreenSupport : TDictionary<TCommonCustomForm, TFullScreenSavedState>; //copied from FMX.Platform.Win (was a class field, here we create/destroy it at initialization and finalization section of this unit below)
 
-  procedure WorkingServiceSetFullScreen(const AForm: TCommonCustomForm; const AValue: Boolean);
+  procedure SetFullscreen_WindowsFix(const AForm: TCommonCustomForm; const AValue: Boolean);
   var
     SavedState: TFullScreenSavedState;
   begin
