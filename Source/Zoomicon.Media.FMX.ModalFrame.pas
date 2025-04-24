@@ -18,6 +18,9 @@ interface
   {$endregion}
 
   type
+
+    {$REGION 'TModalFrame'}
+
     TModalFrame = class(TFrame)
       rectBackground: TRectangle;
       GlyphIcon: TGlyph;
@@ -51,11 +54,17 @@ interface
 
     end;
 
+    {$ENDREGION}
+
+    TModalFrameClass = class of TModalFrame;
+
     procedure Register;
 
 implementation
 
   {$R *.fmx}
+
+  {$REGION 'TModalFrame'}
 
   {$region 'Life-time management'}
 
@@ -158,6 +167,8 @@ implementation
   end;
 
   {$endregion}
+
+  {$ENDREGION}
 
   {$REGION 'Registration' -----------------------------------------------------}
 
