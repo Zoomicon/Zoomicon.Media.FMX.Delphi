@@ -174,7 +174,10 @@ implementation
       exit;
 
     if Assigned(FPresenter) then
+    begin
       FreeAndNil(FPresenter); //no need to remove from its Parent (Self) first
+      FSVGLines.Clear; //do clear, but don't FreeAndNil
+    end;
 
     InitPresenter(Value); //does check if Assigned (not nil)
 
@@ -299,16 +302,12 @@ implementation
 
   function TMediaDisplay.HasNonEmptyBitmap: Boolean;
   begin
-    result := (SVGText = '');
+    const LBitmap = GetBitmap;
+    result := Assigned(LBitmap);
     if result then
     begin
-      const LBitmap = GetBitmap;
-      result := Assigned(LBitmap);
-      if result then
-      begin
-        const LBitmapImage = LBitmap.Image;
-        result := Assigned(LBitmapImage) and (LBitmapImage.Width <> 0) and (LBitmapImage.Height <> 0); //checking LBitmap isn't enough
-      end;
+      const LBitmapImage = LBitmap.Image;
+      result := Assigned(LBitmapImage) and (LBitmapImage.Width <> 0) and (LBitmapImage.Height <> 0); //checking LBitmap isn't enough
     end;
   end;
 
