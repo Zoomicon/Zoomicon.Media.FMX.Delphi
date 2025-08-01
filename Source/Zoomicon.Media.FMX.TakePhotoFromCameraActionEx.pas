@@ -27,6 +27,7 @@ implementation
     {$IF DEFINED(ANDROID)}
     Androidapi.Helpers, //for JStringToString
     Androidapi.JNI.Os, //for TJManifest_permission
+    Androidapi.JNI.JavaTypes, //to avoid [DCC Hint] H2443 Inline function 'JStringToString' has not been expanded because unit 'Androidapi.JNI.JavaTypes' is not specified in USES list
     {$ENDIF}
     System.Classes, //for GroupDescendentsWith, RegisterComponents
     System.Types, //for TClassicStringDynArray

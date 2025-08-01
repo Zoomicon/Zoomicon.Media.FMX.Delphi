@@ -3,11 +3,11 @@
         <ProjectGuid>{948640D0-E917-448E-BE7B-DEA1F70693EC}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="Demo\Media_Demo.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="Source\Zoomicon.Media.FMX.dproj">
             <Dependencies/>
+        </Projects>
+        <Projects Include="Demo\Media_Demo.dproj">
+            <Dependencies>Source\Zoomicon.Media.FMX.dproj</Dependencies>
         </Projects>
     </ItemGroup>
     <ProjectExtensions>
@@ -17,15 +17,6 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="Media_Demo">
-        <MSBuild Projects="Demo\Media_Demo.dproj"/>
-    </Target>
-    <Target Name="Media_Demo:Clean">
-        <MSBuild Projects="Demo\Media_Demo.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="Media_Demo:Make">
-        <MSBuild Projects="Demo\Media_Demo.dproj" Targets="Make"/>
-    </Target>
     <Target Name="Zoomicon_Media_FMX">
         <MSBuild Projects="Source\Zoomicon.Media.FMX.dproj"/>
     </Target>
@@ -35,14 +26,23 @@
     <Target Name="Zoomicon_Media_FMX:Make">
         <MSBuild Projects="Source\Zoomicon.Media.FMX.dproj" Targets="Make"/>
     </Target>
+    <Target Name="Media_Demo" DependsOnTargets="Zoomicon.Media.FMX">
+        <MSBuild Projects="Demo\Media_Demo.dproj"/>
+    </Target>
+    <Target Name="Media_Demo:Clean" DependsOnTargets="Zoomicon.Media.FMX:Clean">
+        <MSBuild Projects="Demo\Media_Demo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Media_Demo:Make" DependsOnTargets="Zoomicon.Media.FMX:Make">
+        <MSBuild Projects="Demo\Media_Demo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="Media_Demo;Zoomicon_Media_FMX"/>
+        <CallTarget Targets="Zoomicon_Media_FMX;Media_Demo"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="Media_Demo:Clean;Zoomicon_Media_FMX:Clean"/>
+        <CallTarget Targets="Zoomicon_Media_FMX:Clean;Media_Demo:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="Media_Demo:Make;Zoomicon_Media_FMX:Make"/>
+        <CallTarget Targets="Zoomicon_Media_FMX:Make;Media_Demo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
