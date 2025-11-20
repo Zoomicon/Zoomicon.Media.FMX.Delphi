@@ -42,6 +42,9 @@ rd /s/q modules
 echo Running boss install in %JUNCTION%...
 boss install
 
+echo Removing modules\.dcp folder
+rmdir modules\.dcp /s/q
+
 echo Removing junction: %JUNCTION%
 rmdir "%JUNCTION%"
 

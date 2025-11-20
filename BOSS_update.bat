@@ -32,6 +32,9 @@ cd /d "%JUNCTION%"
 echo Running boss update in %JUNCTION%...
 boss update
 
+echo Removing modules\.dcp folder
+rmdir modules\.dcp /s/q
+
 echo Removing junction: %JUNCTION%
 rmdir "%JUNCTION%"
 
