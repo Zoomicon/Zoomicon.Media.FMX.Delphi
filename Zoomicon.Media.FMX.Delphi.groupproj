@@ -45,4 +45,74 @@
         <CallTarget Targets="Zoomicon_Media_FMX:Make;Media_Demo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+    <ItemGroup Condition="'$(BuildGroup)'=='Android'">
+        <BuildGroupProject Include="Demo\Media_Demo.dproj">
+            <ProjectGuid>{37F3796D-905A-444E-81D9-3983DFCF23B7}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Android;Android64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="Source\Zoomicon.Media.FMX.dproj">
+            <ProjectGuid>{6E2C0463-4BB6-4FCC-AA63-3D1E63BDF956}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Android;Android64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+    </ItemGroup>
+    <ItemGroup Condition="'$(BuildGroup)'=='macOS'">
+        <BuildGroupProject Include="Demo\Media_Demo.dproj">
+            <ProjectGuid>{37F3796D-905A-444E-81D9-3983DFCF23B7}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>OSX64;OSXARM64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="Source\Zoomicon.Media.FMX.dproj">
+            <ProjectGuid>{6E2C0463-4BB6-4FCC-AA63-3D1E63BDF956}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>OSX64;OSXARM64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+    </ItemGroup>
+    <ItemGroup Condition="'$(BuildGroup)'=='iOS'">
+        <BuildGroupProject Include="Demo\Media_Demo.dproj">
+            <ProjectGuid>{37F3796D-905A-444E-81D9-3983DFCF23B7}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>iOSDevice64;iOSSimARM64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="Source\Zoomicon.Media.FMX.dproj">
+            <ProjectGuid>{6E2C0463-4BB6-4FCC-AA63-3D1E63BDF956}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>iOSDevice64;iOSSimARM64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+    </ItemGroup>
+    <ItemGroup Condition="'$(BuildGroup)'=='All Platforms'">
+        <BuildGroupProject Include="Demo\Media_Demo.dproj">
+            <ProjectGuid>{37F3796D-905A-444E-81D9-3983DFCF23B7}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Android;Android64;iOSDevice64;iOSSimARM64;OSX64;OSXARM64;Win32;Win64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="Source\Zoomicon.Media.FMX.dproj">
+            <ProjectGuid>{6E2C0463-4BB6-4FCC-AA63-3D1E63BDF956}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Android;Android64;iOSDevice64;iOSSimARM64;OSX64;OSXARM64;Win32;Win64;Win64x</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+    </ItemGroup>
+    <ItemGroup Condition="'$(BuildGroup)'=='Windows'">
+        <BuildGroupProject Include="Demo\Media_Demo.dproj">
+            <ProjectGuid>{37F3796D-905A-444E-81D9-3983DFCF23B7}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Win32;Win64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="Source\Zoomicon.Media.FMX.dproj">
+            <ProjectGuid>{6E2C0463-4BB6-4FCC-AA63-3D1E63BDF956}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Win32;Win64;Win64x</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+    </ItemGroup>
 </Project>

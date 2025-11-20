@@ -28,18 +28,14 @@ package Zoomicon.Media.FMX;
 {$IMPLICITBUILD ON}
 
 requires
-  {$IF DEFINED(MSWINDOWS)} //SVGIconImageList GetIt package doesn't provide packages for other platform than Windows, use implicit unit import for other platforms
-  SVGImage32Package,
-  SVGIconImageListFMX,
-  {$ENDIF}
   rtl,
   bindengine,
   fmx,
   bindcomp,
   bindcompfmx,
-  Zoomicon.Generics,
   Skia.Package.RTL,
-  Skia.Package.FMX;
+  Skia.Package.FMX,
+  Zoomicon.Generics;
 
 contains
   Zoomicon.Media.FMX.Models in 'Zoomicon.Media.FMX.Models.pas',

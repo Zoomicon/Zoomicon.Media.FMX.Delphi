@@ -1,29 +1,13 @@
 {
-    "name": "Zoomicon.Media.FMX",
-    "version": "4.7",
-
-    "description": "Media User Interface controls for Delphi FMX",
-
-    "author": "George Birbilis - Zoomicon.com",
-    "license": "MIT",
-
-    "dependencies": {
-          "github.com/zoomicon/zoomicon.generics.delphi": ">=3.1.0"
-    },
-
-    "repository": {
-      "type": "git",
-      "url": "https://github.com/Zoomicon/Zoomicon.Media.FMX.Delphi"
-    },
-
-    "main": "Zoomicon.Media.FMX.dproj",
-
-    "projects": [
-      "Zoomicon.Media.FMX.dproj"
-    ],
-
-    "files": [
-      "**/*.pas"
-    ]
+	"name": "Zoomicon.Media.FMX",
+	"description": "Media User Interface controls for Delphi FMX",
+	"version": "4.8",
+	"homepage": "",
+	"mainsrc": "",
+	"projects": [
+		"Zoomicon.Media.FMX.dproj"
+	],
+	"dependencies": {
+		"github.com/zoomicon/zoomicon.generics.delphi": ">=3.3.0"
+	}
 }
-

@@ -18,8 +18,7 @@ interface
     FMX.Graphics, //for TBitmap
     FMX.Surfaces, //for TBitmapSurface
     FMX.Objects, //for TImage, TImageWrapMode
-    FMX.SVGIconImage, //for TSVGIconImage
-    FMX.Skia, //for TSkAnimatedImage
+    FMX.Skia, //for TSkSvg, TSkAnimatedImage
     //
     Zoomicon.Media.FMX.Models; //for IMediaDisplay
   {$endregion}
@@ -44,7 +43,7 @@ interface
       procedure SetPresenter(const Value: TControl); overload; virtual;
       //Note: calling the following as SetXX instead of GetXX since they cause side-effects (they call SetPresenter if needed)
       function SetPresenter(const ContentFormat: String): TControl; overload; virtual;
-      function SetSVGPresenter: TSVGIconImage; virtual;
+      function SetSVGPresenter: TSkSvg; virtual;
       function SetAnimationPresenter: TSkAnimatedImage; virtual;
       function SetBitmapPresenter: TImage; virtual;
 
@@ -116,11 +115,50 @@ interface
 
   {$ENDREGION}
 
+  {$REGION 'Helpers'}
+
+  function ImageWrapModeToSkSvg(AMode: TImageWrapMode): TSkSvgWrapMode;
+  function ImageWrapModeToSkAnimated(AMode: TImageWrapMode): TSkAnimatedImageWrapMode;
+
+  {$ENDREGION}
+
   procedure Register;
 
 implementation
   uses
     System.SysUtils; //for FreeAndNil
+
+  {$REGION 'Helpers'}
+
+  function ImageWrapModeToSkSvg(AMode: TImageWrapMode): TSkSvgWrapMode;
+  begin
+    case AMode of
+      TImageWrapMode.Original: Result := TSkSvgWrapMode.Original;
+      TImageWrapMode.Fit:      Result := TSkSvgWrapMode.Fit;
+      TImageWrapMode.Stretch:  Result := TSkSvgWrapMode.Stretch;
+      TImageWrapMode.Tile:     Result := TSkSvgWrapMode.Tile;
+      TImageWrapMode.Center:   Result := TSkSvgWrapMode.OriginalCenter;
+      TImageWrapMode.Place:    Result := TSkSvgWrapMode.Place;
+    else
+      Result := TSkSvgWrapMode.Default; // respect SVG control default
+    end;
+  end;
+
+  function ImageWrapModeToSkAnimated(AMode: TImageWrapMode): TSkAnimatedImageWrapMode;
+  begin
+    case AMode of
+      TImageWrapMode.Original: Result := TSkAnimatedImageWrapMode.Original;
+      TImageWrapMode.Fit:      Result := TSkAnimatedImageWrapMode.Fit;
+      TImageWrapMode.Stretch:  Result := TSkAnimatedImageWrapMode.Stretch;
+      TImageWrapMode.Center:   Result := TSkAnimatedImageWrapMode.OriginalCenter;
+      TImageWrapMode.Place:    Result := TSkAnimatedImageWrapMode.Place;
+      //TImageWrapMode.Tile has no animated equivalent; fall through
+    else
+      Result := TSkAnimatedImageWrapMode.Fit; // respect TSkAnimatedImage default
+    end;
+  end;
+
+  {$ENDREGION}
 
   {$REGION 'TMediaDisplay'}
 
@@ -164,8 +202,27 @@ implementation
 
     Value.Parent := Self; //don't place in "with" statement, Self has to be the TMediaDisplay instance
 
-    if Value is TImage then //this also covers TSVGIconImage (descends from TImage)
-      (Value as TImage).WrapMode := TImageWrapMode.Stretch; //stretch the Bitmap or SVG
+    //Init per-presenter class type
+
+    if (Value is TImage) then //for Bitmaps //Note: don't need to check this last, since TSkSvg and TSkAnimatedImage don't descend from TImage
+    begin
+      var img := (Value as TImage);
+      img.WrapMode := TImageWrapMode.Stretch; //stretch the Bitmap
+    end
+
+    else if (Value is TSkSvg) then //for SVG
+    begin
+      var img := (Value as TSkSvg);
+      img.Svg.WrapMode := TSkSvgWrapMode.Stretch; //stretch the SVG
+    end
+
+    else if (Value is TSkAnimatedImage) then //for Animation
+    begin
+      var img := (Value as TSkAnimatedImage);
+      img.WrapMode := TSkAnimatedImageWrapMode.Stretch; //stretch the Animation
+      //img.Animation.Enabled := true; //default is already true
+      //img.Animation.Loop := true; //default is already true
+    end;
   end;
 
   procedure TMediaDisplay.SetPresenter(const Value: TControl);
@@ -198,19 +255,18 @@ implementation
 
   function TMediaDisplay.SetBitmapPresenter: TImage;
   begin
-    if (Presenter is TSVGIconImage) or
-       not (Presenter is TImage) then //since TSVGIconImage is descending from TImage, checking it first (it isn't compatible with BitmapImages)
+    if not (Presenter is TImage) then //since TSkSvg and TSkAnimatedImage are not descending from TImage, we're safe to only do this check (else we'd also have to check if it's one of those two classes)
       Presenter := TImage.Create(Self);
 
     result := Presenter as TImage;
   end;
 
-  function TMediaDisplay.SetSVGPresenter: TSVGIconImage;
+  function TMediaDisplay.SetSVGPresenter: TSkSvg;
   begin
-    if not (Presenter is TSVGIconImage) then
-      Presenter := TSVGIconImage.Create(Self);
+    if not (Presenter is TSkSvg) then
+      Presenter := TSkSvg.Create(Self);
 
-    result := Presenter as TSVGIconImage;
+    result := Presenter as TSkSvg;
   end;
 
   function TMediaDisplay.SetAnimationPresenter: TSkAnimatedImage;
@@ -238,10 +294,15 @@ implementation
 
   function TMediaDisplay.GetContentSize: TSizeF;
   begin
-    if (Presenter is TImage) then //this also covers TSVGIconImage (descends from TImage)
-      result := (Presenter as TImage).Bitmap.Size //TODO: does this fail with TSVGIconImage?
-    else if (Presenter is TSkAnimatedImage) then
+    if (Presenter is TImage) then //for Bitmaps //Note: don't need to check this last, since TSkSvg and TSkAnimatedImage don't descend from TImage
+      result := (Presenter as TImage).Bitmap.Size
+
+    else if (Presenter is TSkSvg) then //for SVG
+      result := (Presenter as TSkSvg).Svg.OriginalSize
+
+    else if (Presenter is TSkAnimatedImage) then //for Animation
       result := (Presenter as TSkAnimatedImage).OriginalSize //if content is assigned will ask codec for size
+
     else
       result := TSizeF.Create(0, 0);
   end;
@@ -258,8 +319,14 @@ implementation
 
   procedure TMediaDisplay.DoWrap;
   begin
-    if (FPresenter is TImage) then //this also covers TSVGIconImage (descends from TImage)
-      (FPresenter as TImage).WrapMode := FWrapMode;
+    if (FPresenter is TImage) then //for Bitmaps
+      (FPresenter as TImage).WrapMode := FWrapMode
+
+    else if (FPresenter is TSkSvg) then //for SVG
+      (FPresenter as TSkSvg).Svg.WrapMode := ImageWrapModeToSkSvg(FWrapMode)
+
+    else if (FPresenter is TSkAnimatedImage) then //for Animation
+      (FPresenter as TSkAnimatedImage).WrapMode := ImageWrapModeToSkAnimated(FWrapMode);
   end;
 
   {$endregion}
@@ -278,10 +345,23 @@ implementation
     if (FForegroundColor = TAlphaColorRec.Null) then
       exit; //never apply the null color as foreground, using it to mark no color replacement mode (the default)
 
-    if (FPresenter is TSVGIconImage) then //must check this first, since TSVGIconImage descends from TImage
-      (FPresenter as TSVGIconImage).FixedColor := FForegroundColor //for SVG
-    else if (FPresenter is TImage) then //for Bitmaps
-      (FPresenter as TImage).Bitmap.ReplaceOpaqueColor(FForegroundColor); //TODO: this doesn't seem to work (maybe need to call some method first to Lock pixels and then Unlock them)
+    if (FPresenter is TImage) then //for Bitmaps //Note: don't need to check this last, since TSkSvg and TSkAnimatedImage don't descend from TImage
+    begin
+      var Bmp := (FPresenter as TImage).Bitmap;
+      var M: TBitmapData;
+      if (not Bmp.IsEmpty) and Bmp.Map(TMapAccess.ReadWrite, M) then
+        try
+          Bmp.ReplaceOpaqueColor(FForegroundColor);
+        finally
+          Bmp.Unmap(M);
+        end;
+    end //TODO: move to some TImageHelper
+
+    else if (FPresenter is TSkSvg) then //for SVG
+      (FPresenter as TSkSvg).Svg.OverrideColor := FForegroundColor;
+
+    //else if (FPresenter is TSkAnimatedImage) then //for Animation
+      //(FPresenter as TSkAnimatedImage).OverrideColor := FForegroundColor
   end;
 
   {$endregion}
@@ -313,7 +393,7 @@ implementation
 
   function TMediaDisplay.GetBitmap: TBitmap;
   begin
-    if (not (Presenter is TSVGIconImage)) and (Presenter is TImage) then //since TSVGIconImage is descending from TImage, excluding it first
+    if (Presenter is TImage) then //it's safe to just check this since TSkSvg and TSkAnimatedImage don't descend from TImage
       result := (Presenter as TImage).Bitmap
     else
       result := nil;
@@ -355,7 +435,7 @@ implementation
     else
     begin
       FSVGLines.Text := Value; //note: reusing a single TStrings instance
-      SetSVGPresenter.SVGText := Value;
+      SetSVGPresenter.Svg.Source := Value;
     end;
 
     InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
