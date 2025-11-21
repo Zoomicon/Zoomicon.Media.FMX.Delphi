@@ -246,6 +246,10 @@
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="Zoomicon.Media.FMX.FullScreen.pas"/>
+        <None Include="..\boss.json"/>
+        <None Include="..\LICENSE.txt"/>
+        <None Include="..\README.md"/>
+        <None Include="boss.json"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -270,6 +274,8 @@
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k370.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp370.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
+                <WelcomePageFile Path="..\README.md"/>
+                <WelcomePageFolder/>
             </Delphi.Personality>
             <Deployment Version="5">
                 <DeployFile LocalName="$(BDS)\Redist\iossimulator\libcgunwind.1.0.dylib" Class="DependencyModule">
@@ -294,7 +300,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\..\..\..\..\Public\Documents\Embarcadero\Studio\23.0\Bpl\Zoomicon.Media.FMX.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="..\..\..\..\..\Public\Documents\Embarcadero\Studio\37.0\Bpl\Zoomicon.Media.FMX.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>Zoomicon.Media.FMX.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
