@@ -13,7 +13,8 @@ interface
 implementation
   uses
     System.Generics.Collections, //for TDictionary<KeyType,ValueType>
-    System.SysUtils; //for TStringSplitOptions
+    System.SysUtils, //for TStringSplitOptions
+    FMX.Types; //for Log.d
 
   function ImageWrapModeToSkSvg(AMode: TImageWrapMode): TSkSvgWrapMode;
   begin
@@ -122,90 +123,116 @@ implementation
   begin
     var ResultSvg := SvgText;
 
-    // Locate <style> block boundaries
+    // Locate style block boundaries in the SVG text
     var StyleStart := Pos('<style>', ResultSvg);
     var StyleEnd := Pos('</style>', ResultSvg);
 
     if (StyleStart > 0) and (StyleEnd > StyleStart) then
     begin
-      // Extract raw CSS style content
+      // Extract raw CSS style content between <style> and </style>
       var StyleBlock := Copy(ResultSvg, StyleStart + Length('<style>'),
         StyleEnd - (StyleStart + Length('<style>')));
 
-      // Map class names to merged inline attributes
-      var ClassMap := TDictionary<string, string>.Create;
+      // Dictionary mapping class names to merged inline attributes
+      var ClassMap: TDictionary<string, string> := TDictionary<string, string>.Create;
+      try
+        // Split style block into individual lines or rules
+        var Lines := StyleBlock.Split([#10, #13], TStringSplitOptions.ExcludeEmpty);
 
-      // Split style block into individual rules
-      var Lines := StyleBlock.Split([#10, #13], TStringSplitOptions.ExcludeEmpty);
-
-      for var Line in Lines do
-      begin
-        var TrimmedLine := Trim(Line);
-
-        // Only process class-based rules (e.g. .cls-1{...})
-        if TrimmedLine.StartsWith('.') and TrimmedLine.Contains('{') then
+        for var Line in Lines do
         begin
-          // Extract selector list and rule body
-          var SelectorPart := Copy(TrimmedLine, 1, Pos('{', TrimmedLine) - 1);
-          var RuleBody := Copy(TrimmedLine, Pos('{', TrimmedLine) + 1,
-            Pos('}', TrimmedLine) - Pos('{', TrimmedLine) - 1);
+          var TrimmedLine := Trim(Line);
 
-          // Support grouped selectors (e.g. .cls-1, .cls-2)
-          var ClassNames := SelectorPart.Split([','], TStringSplitOptions.ExcludeEmpty);
-          var Props := RuleBody.Split([';'], TStringSplitOptions.ExcludeEmpty);
-
-          for var RawClass in ClassNames do
+          // Only process class-based rules such as .cls-1{...}
+          if TrimmedLine.StartsWith('.') and TrimmedLine.Contains('{') then
           begin
-            var ClassName := Trim(RawClass);
-            if ClassName.StartsWith('.') then Delete(ClassName, 1, 1);
+            // Extract selector list before { and rule body between { and }
+            var SelectorPart := Copy(TrimmedLine, 1, Pos('{', TrimmedLine) - 1);
+            var RuleBody := Copy(TrimmedLine, Pos('{', TrimmedLine) + 1,
+              Pos('}', TrimmedLine) - Pos('{', TrimmedLine) - 1);
 
-            // Merge with any existing attributes for this class
-            var Existing := '';
-            ClassMap.TryGetValue(ClassName, Existing);
+            // Support grouped selectors such as .cls-2, .cls-3
+            var ClassNames := SelectorPart.Split([','], TStringSplitOptions.ExcludeEmpty);
+            var Props := RuleBody.Split([';'], TStringSplitOptions.ExcludeEmpty);
 
-            for var Prop in Props do
+            for var RawClass in ClassNames do
             begin
-              var Parts := Prop.Split([':'], TStringSplitOptions.ExcludeEmpty);
-              if Length(Parts) = 2 then
+              // Normalize class name by removing leading dot
+              var ClassName := Trim(RawClass);
+              if ClassName.StartsWith('.') then Delete(ClassName, 1, 1);
+
+              // Merge with any existing attributes for this class
+              var Existing := '';
+              ClassMap.TryGetValue(ClassName, Existing);
+
+              // Process each property in the rule body
+              for var Prop in Props do
               begin
-                var Name := Trim(Parts[0]);
-                var Value := Trim(Parts[1]);
-
-                // Expand shorthand stroke (e.g. "stroke: red 2px dashed")
-                if Name = 'stroke' then
+                var Parts := Prop.Split([':'], TStringSplitOptions.ExcludeEmpty);
+                if Length(Parts) = 2 then
                 begin
-                  var StrokeParts := Value.Split([' '], TStringSplitOptions.ExcludeEmpty);
-                  if Length(StrokeParts) > 0 then Existing := Existing + ' stroke="' + StrokeParts[0] + '"';
-                  if Length(StrokeParts) > 1 then Existing := Existing + ' stroke-width="' + StrokeParts[1] + '"';
-                  if Length(StrokeParts) > 2 then Existing := Existing + ' stroke-dasharray="' + StrokeParts[2] + '"';
-                end
-                // Map supported style properties to inline attributes
-                else if (Name = 'fill') or (Name = 'stroke-width') or
-                        (Name = 'fill-opacity') or (Name = 'stroke-opacity') or
-                        (Name = 'stroke-linecap') or (Name = 'stroke-linejoin') or
-                        (Name = 'stroke-dasharray') or (Name = 'fill-rule') or
-                        (Name = 'font-family') or (Name = 'font-size') or
-                        (Name = 'font-weight') then
-                  Existing := Existing + ' ' + Name + '="' + Value + '"';
-              end;
-            end;
+                  var Name := Trim(Parts[0]);
+                  var Value := Trim(Parts[1]);
 
-            // Store merged inline attributes for this class
-            ClassMap[ClassName] := Trim(Existing);
+                  // Expand shorthand stroke such as stroke: red 2px dashed
+                  if Name = 'stroke' then
+                  begin
+                    var StrokeParts := Value.Split([' '], TStringSplitOptions.ExcludeEmpty);
+                    if Length(StrokeParts) > 0 then Existing := Existing + ' stroke="' + StrokeParts[0] + '"';
+                    if Length(StrokeParts) > 1 then Existing := Existing + ' stroke-width="' + StrokeParts[1] + '"';
+                    if Length(StrokeParts) > 2 then Existing := Existing + ' stroke-dasharray="' + StrokeParts[2] + '"';
+                  end
+                  // Map supported style properties directly to inline attributes
+                  else if (Name = 'fill') or (Name = 'stroke-width') or
+                          (Name = 'fill-opacity') or (Name = 'stroke-opacity') or
+                          (Name = 'stroke-linecap') or (Name = 'stroke-linejoin') or
+                          (Name = 'stroke-dasharray') or (Name = 'fill-rule') or
+                          (Name = 'font-family') or (Name = 'font-size') or
+                          (Name = 'font-weight') then
+                    Existing := Existing + ' ' + Name + '="' + Value + '"';
+                end;
+              end;
+
+              // Store merged inline attributes for this class
+              ClassMap[ClassName] := Trim(Existing);
+            end;
           end;
         end;
+
+        // Replace each class="..." reference in SVG with inline attributes
+        // If class not found, log diagnostic and remove the reference
+        var PosClass := Pos('class="', ResultSvg);
+        while PosClass > 0 do
+        begin
+          var StartPos := PosClass + Length('class="');
+          var EndPos := StartPos;
+          while (EndPos <= Length(ResultSvg)) and (ResultSvg[EndPos] <> '"') do Inc(EndPos);
+          var ClassName := Copy(ResultSvg, StartPos, EndPos - StartPos);
+
+          if ClassMap.ContainsKey(ClassName) then
+          begin
+            var InlineAttrs := ClassMap[ClassName];
+            ResultSvg := Copy(ResultSvg, 1, PosClass - 1) + InlineAttrs +
+                         Copy(ResultSvg, EndPos + 1, Length(ResultSvg) - EndPos);
+          end
+          else
+          begin
+            Log.d('InlineSvgStyle: class "' + ClassName + '" not found, removing reference');
+            ResultSvg := Copy(ResultSvg, 1, PosClass - 1) +
+                         Copy(ResultSvg, EndPos + 1, Length(ResultSvg) - EndPos);
+          end;
+
+          // Continue scanning for next class="..."
+          PosClass := Pos('class="', ResultSvg);
+        end;
+
+        // Remove the original style block entirely
+        Delete(ResultSvg, StyleStart, StyleEnd + Length('</style>') - StyleStart);
+
+      finally
+        // Guaranteed cleanup: free dictionary and nil the reference
+        FreeAndNil(ClassMap);
       end;
-
-      // Replace each class="..." with its corresponding inline attributes
-      for var Pair in ClassMap do
-        ResultSvg := StringReplace(ResultSvg,
-          'class="' + Pair.Key + '"',
-          Pair.Value,
-          [rfReplaceAll, rfIgnoreCase]);
-
-      // Remove the original <style> block entirely
-      Delete(ResultSvg, StyleStart, StyleEnd + Length('</style>') - StyleStart);
-      ClassMap.Free;
     end;
 
     Result := ResultSvg;
