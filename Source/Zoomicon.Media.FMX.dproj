@@ -246,6 +246,7 @@
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="Zoomicon.Media.FMX.FullScreen.pas"/>
+        <DCCReference Include="Zoomicon.Media.FMX.SkiaUtils.pas"/>
         <None Include="..\boss.json"/>
         <None Include="..\LICENSE.txt"/>
         <None Include="..\README.md"/>

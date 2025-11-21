@@ -329,6 +329,7 @@
         </DCCReference>
         <DCCReference Include="..\Source\Zoomicon.Media.FMX.Models.pas"/>
         <DCCReference Include="..\Source\Zoomicon.Media.FMX.TakePhotoFromCameraActionEx.pas"/>
+        <DCCReference Include="..\Source\Zoomicon.Media.FMX.SkiaUtils.pas"/>
         <None Include="boss.json"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

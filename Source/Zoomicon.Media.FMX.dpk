@@ -46,7 +46,8 @@ contains
   Zoomicon.Media.FMX.TakePhotoFromCameraActionEx in 'Zoomicon.Media.FMX.TakePhotoFromCameraActionEx.pas',
   Zoomicon.Media.FMX.FileChooser in 'Zoomicon.Media.FMX.FileChooser.pas' {FileChooser: TFrame},
   Zoomicon.Media.FMX.ModalFrame in 'Zoomicon.Media.FMX.ModalFrame.pas' {ModalFrame: TFrame},
-  Zoomicon.Media.FMX.FullScreen in 'Zoomicon.Media.FMX.FullScreen.pas';
+  Zoomicon.Media.FMX.FullScreen in 'Zoomicon.Media.FMX.FullScreen.pas',
+  Zoomicon.Media.FMX.SkiaUtils in 'Zoomicon.Media.FMX.SkiaUtils.pas';
 
 {$Description 'Zoomicon Media FMX Controls'}
 

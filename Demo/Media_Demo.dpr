@@ -14,7 +14,8 @@ uses
   Zoomicon.Media.FMX.MediaPlayerEx in '..\Source\Zoomicon.Media.FMX.MediaPlayerEx.pas',
   Zoomicon.Media.FMX.ModalFrame in '..\Source\Zoomicon.Media.FMX.ModalFrame.pas' {ModalFrame: TFrame},
   Zoomicon.Media.FMX.Models in '..\Source\Zoomicon.Media.FMX.Models.pas',
-  Zoomicon.Media.FMX.TakePhotoFromCameraActionEx in '..\Source\Zoomicon.Media.FMX.TakePhotoFromCameraActionEx.pas';
+  Zoomicon.Media.FMX.TakePhotoFromCameraActionEx in '..\Source\Zoomicon.Media.FMX.TakePhotoFromCameraActionEx.pas',
+  Zoomicon.Media.FMX.SkiaUtils in '..\Source\Zoomicon.Media.FMX.SkiaUtils.pas';
 
 {$R *.res}
 

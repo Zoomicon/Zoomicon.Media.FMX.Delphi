@@ -115,127 +115,12 @@ interface
 
   {$ENDREGION}
 
-  {$REGION 'Helpers'}
-
-  function ImageWrapModeToSkSvg(AMode: TImageWrapMode): TSkSvgWrapMode;
-  function ImageWrapModeToSkAnimated(AMode: TImageWrapMode): TSkAnimatedImageWrapMode;
-
-  function InlineSvgStyle(const SvgText: string): string;
-
-  {$ENDREGION}
-
   procedure Register;
 
 implementation
   uses
-    System.SysUtils; //for FreeAndNil
-
-  {$REGION 'Helpers'}
-
-  function ImageWrapModeToSkSvg(AMode: TImageWrapMode): TSkSvgWrapMode;
-  begin
-    case AMode of
-      TImageWrapMode.Original: Result := TSkSvgWrapMode.Original;
-      TImageWrapMode.Fit:      Result := TSkSvgWrapMode.Fit;
-      TImageWrapMode.Stretch:  Result := TSkSvgWrapMode.Stretch;
-      TImageWrapMode.Tile:     Result := TSkSvgWrapMode.Tile;
-      TImageWrapMode.Center:   Result := TSkSvgWrapMode.OriginalCenter;
-      TImageWrapMode.Place:    Result := TSkSvgWrapMode.Place;
-    else
-      Result := TSkSvgWrapMode.Default; // respect SVG control default
-    end;
-  end;
-
-  function ImageWrapModeToSkAnimated(AMode: TImageWrapMode): TSkAnimatedImageWrapMode;
-  begin
-    case AMode of
-      TImageWrapMode.Original: Result := TSkAnimatedImageWrapMode.Original;
-      TImageWrapMode.Fit:      Result := TSkAnimatedImageWrapMode.Fit;
-      TImageWrapMode.Stretch:  Result := TSkAnimatedImageWrapMode.Stretch;
-      TImageWrapMode.Center:   Result := TSkAnimatedImageWrapMode.OriginalCenter;
-      TImageWrapMode.Place:    Result := TSkAnimatedImageWrapMode.Place;
-      //TImageWrapMode.Tile has no animated equivalent; fall through
-    else
-      Result := TSkAnimatedImageWrapMode.Fit; // respect TSkAnimatedImage default
-    end;
-  end;
-
-  function InlineSvgStyle(const SvgText: string): string;
-  begin
-    var ResultSvg := SvgText;
-
-    // Find <style> block
-    var StyleStart := Pos('<style>', ResultSvg);
-    var StyleEnd   := Pos('</style>', ResultSvg);
-
-    if (StyleStart > 0) and (StyleEnd > StyleStart) then
-    begin
-      var StyleBlock := Copy(ResultSvg, StyleStart + Length('<style>'),
-        StyleEnd - (StyleStart + Length('<style>')));
-
-      // Split into lines/rules
-      var Lines := StyleBlock.Split([#10, #13], TStringSplitOptions.ExcludeEmpty);
-
-      for var Line in Lines do
-      begin
-        var TrimmedLine := Trim(Line);
-        // Example: .cls-1{fill:#fff;stroke:#000;stroke-width:2;}
-        if TrimmedLine.StartsWith('.') and TrimmedLine.Contains('{') then
-        begin
-          var ClassName := Copy(TrimmedLine, 2, Pos('{', TrimmedLine) - 2); // remove leading '.'
-          var RuleBody := Copy(TrimmedLine, Pos('{', TrimmedLine) + 1,
-            Pos('}', TrimmedLine) - Pos('{', TrimmedLine) - 1);
-
-          // Split properties by ';'
-          var Props := RuleBody.Split([';'], TStringSplitOptions.ExcludeEmpty);
-          var InlineAttrs := '';
-          for var Prop in Props do
-          begin
-            var Parts := Prop.Split([':'], TStringSplitOptions.ExcludeEmpty);
-            if Length(Parts) = 2 then
-            begin
-              var Name := Trim(Parts[0]);
-              var Value := Trim(Parts[1]);
-
-              // Handle shorthand stroke (e.g. "stroke: red 2px dashed")
-              if (Name = 'stroke') then
-              begin
-                var StrokeParts := Value.Split([' '], TStringSplitOptions.ExcludeEmpty);
-                if Length(StrokeParts) > 0 then
-                  InlineAttrs := InlineAttrs + ' stroke="' + StrokeParts[0] + '"';
-                if Length(StrokeParts) > 1 then
-                  InlineAttrs := InlineAttrs + ' stroke-width="' + StrokeParts[1] + '"';
-                if Length(StrokeParts) > 2 then
-                  InlineAttrs := InlineAttrs + ' stroke-dasharray="' + StrokeParts[2] + '"';
-              end
-              else if (Name = 'fill') or (Name = 'stroke-width') or
-                      (Name = 'fill-opacity') or (Name = 'stroke-opacity') or
-                      (Name = 'stroke-linecap') or (Name = 'stroke-linejoin') or
-                      (Name = 'stroke-dasharray') or (Name = 'font-family') or
-                      (Name = 'font-size') or (Name = 'font-weight') then
-                InlineAttrs := InlineAttrs + ' ' + Name + '="' + Value + '"';
-            end;
-          end;
-
-          if InlineAttrs <> '' then
-          begin
-            // Replace specific class attribute with respective inline attributes
-            ResultSvg := StringReplace(ResultSvg,
-              'class="' + ClassName + '"',
-              Trim(InlineAttrs),
-              [rfReplaceAll, rfIgnoreCase]);
-          end;
-        end;
-      end;
-
-      // Remove the <style> block entirely
-      Delete(ResultSvg, StyleStart, StyleEnd + Length('</style>') - StyleStart);
-    end;
-
-    Result := ResultSvg;
-  end;
-
-  {$ENDREGION}
+    System.SysUtils, //for FreeAndNil
+    Zoomicon.Media.FMX.SkiaUtils; //for ImageWrapModeToSkSvg, ImageWrapModeToSkAnimated, InlineSvgStyle
 
   {$REGION 'TMediaDisplay'}
 
