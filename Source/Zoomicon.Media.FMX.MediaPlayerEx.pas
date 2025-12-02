@@ -71,9 +71,10 @@ interface
       {Looping}
       function IsLooping: Boolean; virtual;
       procedure SetLooping(const Value: Boolean); virtual;
-      {Filename}
-      function GetFilename: String;
-      procedure SetFileName(const Value: string);
+      {FileName}
+      function GetFileName: String; //Note: there's no TMediaPlayer.GetFileName (the ancestor FileName property reads FFileName private field)
+      procedure SetFileName(const Value: string); //Note: TMediaPlayer.SetFileName is private (can set the ancestor FileName property)
+      procedure ChangeFileName(const Value: string); virtual;
       {Stream}
       function GetStream: TStream;
       procedure SetStream(const Value: TStream);
@@ -101,7 +102,7 @@ interface
       property Muted: Boolean read IsMuted write SetMuted;
       property AutoPlaying: Boolean read IsAutoPlaying write SetAutoPlaying;
       property Looping: Boolean read IsLooping write SetLooping;
-      property FileName: string read GetFilename write SetFilename; //TODO: ignore the filename when there's a persisted data stream
+      property FileName: string read GetFileName write SetFileName; //TODO: ignore the filename when there's a persisted data stream
       property Stream: TStream read GetStream write SetStream stored false; //TODO: persist the data stream: https://www.informit.com/articles/article.aspx?p=28278&seqNum=5
       {Events}
       property OnPlay: TOnPlay read FOnPlay write FOnPlay;
@@ -114,11 +115,14 @@ interface
 
     {$ENDREGION}
 
+  function FindAudioExt(const AStream: TStream): string;
+
   procedure Register;
 
 implementation
   uses
     System.IOUtils, //for TPath
+    System.Math, //for Min
     System.SysUtils; //for fmWrite
 
   {$REGION 'TMediaPlayerEx'}
@@ -144,6 +148,8 @@ implementation
   end;
 
   {$endregion}
+
+  {$region 'Media Control'}
 
   procedure TMediaPlayerEx.Play;
   begin
@@ -180,11 +186,9 @@ implementation
       FOnStop;
   end;
 
-  procedure TMediaPlayerEx.Clear;
-  begin
-    Stop;
-    inherited Clear; //this does FreeAndNil(Media) and (at the ancestor level) also Filename:=''
-  end;
+  {$endregion}
+
+  {$region 'Timer'}
 
   procedure TMediaPlayerEx.HandleTimer;
   begin
@@ -204,22 +208,6 @@ implementation
           DoAtEnd;
       end;
   end;
-
-  procedure TMediaPlayerEx.DoAtStart;
-  begin
-    if Assigned(FOnAtStart) then
-      FOnAtStart;
-  end;
-
-  procedure TMediaPlayerEx.DoAtEnd;
-  begin
-    if Assigned(FOnAtEnd) then
-      FOnAtEnd;
-    if FLooping then
-      CurrentTime := 0; //TODO: depending on Timer resolution this may fail to fire OnAtStart (but if we call DoAtStart it may fire twice)
-  end;
-
-  {$region 'TimerStarted'}
 
   function TMediaPlayerEx.IsTimerStarted: Boolean;
   begin
@@ -253,6 +241,8 @@ implementation
     result := (State <> TMediaState.Unavailable);
   end;
 
+  {$endregion}
+
   {$region 'Playing'}
 
   function TMediaPlayerEx.IsPlaying: Boolean;
@@ -277,6 +267,12 @@ implementation
     result := (CurrentTime = 0);
   end;
 
+  procedure TMediaPlayerEx.DoAtStart;
+  begin
+    if Assigned(FOnAtStart) then
+      FOnAtStart;
+  end;
+
   {$endregion}
 
   {$region 'AtEnd'}
@@ -284,6 +280,14 @@ implementation
   function TMediaPlayerEx.IsAtEnd: Boolean;
   begin
     result := (CurrentTime = Duration);
+  end;
+
+  procedure TMediaPlayerEx.DoAtEnd;
+  begin
+    if Assigned(FOnAtEnd) then
+      FOnAtEnd;
+    if FLooping then
+      CurrentTime := 0; //TODO: depending on Timer resolution this may fail to fire OnAtStart (but if we call DoAtStart it may fire twice)
   end;
 
   {$endregion}
@@ -351,22 +355,36 @@ implementation
 
   {$endregion}
 
-  {$region 'Filename'}
+  {$region 'Content'}
 
-  function TMediaPlayerEx.GetFilename: String;
+  procedure TMediaPlayerEx.Clear;
   begin
-    result := inherited Filename;
+    Stop;
+    inherited Clear; //this does FreeAndNil(Media) and (at the ancestor level) also FileName:=''
+  end;
+
+  {$region 'FileName'}
+
+  function TMediaPlayerEx.GetFileName: String;
+  begin
+    result := inherited FileName;
   end;
 
   procedure TMediaPlayerEx.SetFileName(const Value: string);
   begin
+    FStream := nil;
+    ChangeFileName(Value);
+  end;
+
+  procedure TMediaPlayerEx.ChangeFileName(const Value: string);
+  begin
     if (Value.IsEmpty) then
-      Clear //this also calls Stop in our implementation (and via "inherited Clear" does FreeAndNil(Media) and [at the ancestor level] Filename:='')
+      Clear //this also calls Stop in our implementation (and via "inherited Clear" does FreeAndNil(Media) and [at the ancestor level] FileName:='')
     else
       begin
       if FAutoPlaying then
         TimerStarted := true; //HandleTimer also checks if media is loaded
-      inherited Filename := Value;
+      inherited FileName := Value;
       end;
   end;
 
@@ -380,19 +398,18 @@ implementation
   end;
 
   procedure TMediaPlayerEx.SetStream(const Value: TStream);
-  var tempFileName: String;
   begin
     //--- Clear any previous content
 
-     tempFileName:= Filename; //keep any temp file's path before clearing it
+     var FTempFileName := FileName; //keep any temp file's path before clearing it
 
     //first stop player and release file it may be holding locked
-    Filename := ''; //this will call Clear (this also calls Stop in our implementation (and via "inherited Clear" does FreeAndNil(Media) and [at the ancestor level] Filename:=''))
+    ChangeFileName(''); //this will call Clear (this also calls Stop in our implementation (and via "inherited Clear" does FreeAndNil(Media) and [at the ancestor level] FileName:='')) //don't use SetFileName, it will clear FStream
 
     //clear temp file (backing assigned stream), if any
-    if Assigned(Stream) then
+    if Assigned(FStream) then
      begin
-       TFile.Delete(tempFileName); //delete temp file we had allocated for Stream //Note: must do this after stop and clear (Filename:='' does that above)
+       TFile.Delete(FTempFileName); //delete temp file we had allocated for Stream //Note: must do this after stop and clear (FileName:='' does that above)
        FStream := nil; //do not free FStream, we hadn't created it
      end;
 
@@ -400,18 +417,112 @@ implementation
 
     if Assigned(Value) then
     begin
-      TempFileName := TPath.GetTempFileName;
-      var F := TFileStream.Create(TempFilename, fmCreate or fmOpenWrite {or fmShareDenyNone}); //TODO: fmShareDenyNote probably needed for Android
+      FTempFileName := TPath.ChangeExtension(TPath.GetTempFileName, FindAudioExt(Value));
+      var F := TFileStream.Create(FTempFileName, fmCreate or fmOpenWrite {or fmShareDenyNone}); //fmShareDenyNote not needed since we'll close the temp file after writing to it, then pass the filename to the ancestorTMediaPlayer
       try
-        F.CopyFrom(Value);
+        try
+          var LastPos := Value.Position;
+          F.CopyFrom(Value);
+          FStream := Value;
+          FStream.Position := LastPos;
+        except
+          TFile.Delete(FTempFileName); // cleanup temp file if copy fails
+          raise;                       // re-raise exception to caller
+          end;
       finally
         FreeAndNil(F);
       end;
-      Filename := TempFilename;
+
+      //tell TMediaPlayer ancestor to open the new TempFileName
+      ChangeFileName(FTempFileName); //don't use SetFileName, it will clear FStream
     end;
   end;
 
   {$endregion}
+
+  {$endregion}
+
+  {$ENDREGION}
+
+  {$REGION 'Helpers'}
+
+  function FindAudioExt(const AStream: TStream): string;
+    type
+      THeader = record
+        Signature: TArray<Byte>; // dynamic array of bytes
+        Offset: Integer; // where in the stream the signature starts
+        Ext: string; // detected file extension
+      end;
+
+    const
+      Headers: array[0..8] of THeader = (
+        // MP3 — frame sync FF FB or FF F3 or FF F2
+        (Signature: [$FF,$FB]; Offset: 0; Ext: '.mp3'),
+        (Signature: [$FF,$F3]; Offset: 0; Ext: '.mp3'),
+        (Signature: [$FF,$F2]; Offset: 0; Ext: '.mp3'),
+
+        // WAV — "RIFF"
+        (Signature: [$52,$49,$46,$46]; Offset: 0; Ext: '.wav'),
+
+        // OGG — "OggS"
+        (Signature: [$4F,$67,$67,$53]; Offset: 0; Ext: '.ogg'),
+
+        // M4A / AAC — 'ftyp' at offset 4
+        (Signature: [$66,$74,$79,$70]; Offset: 4; Ext: '.m4a'),
+
+        // AIFF — "FORM"
+        (Signature: [$46,$4F,$52,$4D]; Offset: 0; Ext: '.aiff'),
+
+        // FLAC — "fLaC"
+        (Signature: [$66,$4C,$61,$43]; Offset: 0; Ext: '.flac'),
+
+        // WMA / ASF — ASF header
+        (Signature: [$30,$26,$B2,$75]; Offset: 0; Ext: '.wma')
+      );
+
+    var
+      Buf: array[0..15] of Byte;
+      i, j: Integer;
+      SavedPos: Int64;
+      Header: THeader;
+      SigLen: Integer;
+  begin
+    Result := '.bin';
+
+    if not Assigned(AStream) then Exit;
+
+    if AStream.Size < 2 then Exit;
+
+    SavedPos := AStream.Position;
+    AStream.Position := 0;
+
+    FillChar(Buf, SizeOf(Buf), 0);
+    AStream.ReadBuffer(Buf, Min(AStream.Size, 16));
+
+    for i := Low(Headers) to High(Headers) do
+    begin
+      Header := Headers[i];
+      SigLen := Length(Header.Signature);
+
+      // skip if stream too short for this header
+      if (AStream.Size < Header.Offset + SigLen) then
+        Continue;
+
+      // compare bytes
+      for j := 0 to SigLen - 1 do
+        if Buf[Header.Offset + j] <> Header.Signature[j] then
+          Break
+        else if j = SigLen - 1 then
+        begin
+          Result := Header.Ext;
+          AStream.Position := SavedPos;
+          Exit;
+        end;
+
+    end;
+
+    AStream.Position := SavedPos;
+  end;
 
   {$ENDREGION}
 
