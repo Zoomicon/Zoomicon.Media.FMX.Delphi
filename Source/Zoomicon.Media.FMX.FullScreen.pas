@@ -148,7 +148,9 @@ implementation
 
   procedure RegisterFullScreenServiceiOS;
   begin
-    TPlatformServices.Current.AddPlatformService(IFMXFullScreenWindowService, TFullScreenServiceiOS.Create);
+    if not TPlatformServices.Current.SupportsPlatformService(IFMXFullScreenWindowService) then
+      //Note: recent Delphi versions implement  fullscreen service for iOS too, keep that one (could remove it and register ours - adding it twice would cause crash giving back GUID of that service interface, aka {103EB4B7-E899-4684-8174-2EEEE24F1E58})
+      TPlatformServices.Current.AddPlatformService(IFMXFullScreenWindowService, TFullScreenServiceiOS.Create);
   end;
   {$ENDIF}
   {$endregion}
