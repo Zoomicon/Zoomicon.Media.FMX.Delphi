@@ -1,7 +1,7 @@
 {
 	"name": "Media_Demo",
 	"description": "Zoomicon Media FMX Demo app",
-	"version": "7.1",
+	"version": "7.2",
 	"homepage": "https://github.com/Zoomicon/Zoomicon.Media.FMX.Delphi/Demo",
 	"mainsrc": ".",
 	"projects": [
