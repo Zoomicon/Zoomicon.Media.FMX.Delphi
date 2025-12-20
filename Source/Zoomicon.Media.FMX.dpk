@@ -35,7 +35,7 @@ requires
   bindcompfmx,
   Skia.Package.RTL,
   Skia.Package.FMX,
-  Zoomicon.Generics{BOSS};
+  Zoomicon.Generics;
 
 contains
   Zoomicon.Media.FMX.Models in 'Zoomicon.Media.FMX.Models.pas',
@@ -47,7 +47,8 @@ contains
   Zoomicon.Media.FMX.FileChooser in 'Zoomicon.Media.FMX.FileChooser.pas' {FileChooser: TFrame},
   Zoomicon.Media.FMX.ModalFrame in 'Zoomicon.Media.FMX.ModalFrame.pas' {ModalFrame: TFrame},
   Zoomicon.Media.FMX.FullScreen in 'Zoomicon.Media.FMX.FullScreen.pas',
-  Zoomicon.Media.FMX.SkiaUtils in 'Zoomicon.Media.FMX.SkiaUtils.pas';
+  Zoomicon.Media.FMX.SkiaUtils in 'Zoomicon.Media.FMX.SkiaUtils.pas',
+  Zoomicon.Media.FMX.VertScrollBoxWithArrows in 'Zoomicon.Media.FMX.VertScrollBoxWithArrows.pas';
 
 {$Description 'Zoomicon Media FMX Controls'}
 

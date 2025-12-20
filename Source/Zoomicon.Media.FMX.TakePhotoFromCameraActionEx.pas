@@ -5,10 +5,14 @@
 unit Zoomicon.Media.FMX.TakePhotoFromCameraActionEx;
 
 interface
+  {$region 'Used units'}
   uses
     FMX.MediaLibrary.Actions; //for TTakePhotoCameraAction
+  {$endregion}
 
   type
+
+    {$REGION 'TTakePhotoCameraActionEx'}
 
     TTakePhotoFromCameraActionEx = class(TTakePhotoFromCameraAction)
     protected
@@ -20,9 +24,12 @@ interface
       property RequestPermission: boolean read FRequestPermission write FRequestPermission;
     end;
 
+    {$ENDREGION}
+
   procedure Register;
 
 implementation
+  {$region 'Used units'}
   uses
     {$IF DEFINED(ANDROID)}
     Androidapi.Helpers, //for JStringToString
@@ -34,6 +41,7 @@ implementation
     FMX.Types, //for RegisterFmxClasses, log.d
     System.SysUtils, //to avoid [dcc32 Hint] H2443 Inline function 'Log.d' has not been expanded because unit 'System.SysUtils' is not specified in USES list
     System.Permissions; // Required for permission handling
+  {$endregion}
 
   {$REGION 'TTakePhotoCameraActionEx' -----------------------------------------}
 

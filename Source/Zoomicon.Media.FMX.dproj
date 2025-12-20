@@ -247,6 +247,7 @@
         </DCCReference>
         <DCCReference Include="Zoomicon.Media.FMX.FullScreen.pas"/>
         <DCCReference Include="Zoomicon.Media.FMX.SkiaUtils.pas"/>
+        <DCCReference Include="Zoomicon.Media.FMX.VertScrollBoxWithArrows.pas"/>
         <None Include="..\boss.json"/>
         <None Include="..\LICENSE.txt"/>
         <None Include="..\README.md"/>
