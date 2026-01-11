@@ -184,7 +184,7 @@ interface
       procedure LoadSVG(const Stream: TStream; const ContentFormat: String);
       procedure LoadAnimation(const Stream: TStream; const ContentFormat: String);
 
-      property Presenter: TControl read FPresenter write SetPresenter stored false;
+      property Presenter: TControl read GetPresenter write SetPresenter;
 
       property AutoSize: Boolean read IsAutoSize write SetAutoSize;
       property ContentSize: TSizeF read GetContentSize;
