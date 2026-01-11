@@ -36,10 +36,12 @@ interface
       FSVGLines: TStringList;
       FAutoSize: Boolean;
       FWrapMode: TImageWrapMode;
+      FLooping: Boolean;
       FForegroundColor: TAlphaColor;
 
       {Presenter}
       procedure InitPresenter(const Value: TControl); virtual;
+      function GetPresenter: TControl; virtual;
       procedure SetPresenter(const Value: TControl); overload; virtual;
       //Note: calling the following as SetXX instead of GetXX since they cause side-effects (they call SetPresenter if needed)
       function SetPresenter(const ContentFormat: String): TControl; overload; virtual;
@@ -48,18 +50,26 @@ interface
       function SetBitmapPresenter: TImage; virtual;
 
       {Content}
-      procedure InitContent;
+      procedure InitContent; virtual;
 
       {AutoSize}
+      function IsAutoSize: Boolean; virtual;
       procedure SetAutoSize(const Value: Boolean); virtual;
-      procedure DoAutoSize; virtual;
+      procedure ApplyAutoSize; virtual;
       function GetContentSize: TSizeF; virtual;
 
       {WrapMode}
+      function GetWrapMode: TImageWrapMode; virtual;
       procedure SetWrapMode(const Value: TImageWrapMode); virtual;
-      procedure DoWrap; virtual;
+      procedure ApplyWrapMode; virtual;
+
+      {Looping (for Animation)}
+      function IsLooping: Boolean; virtual;
+      procedure SetLooping(const Value: Boolean); virtual;
+      procedure ApplyLooping; virtual;
 
       {ForegroundColor}
+      function GetForegroundColor: TAlphaColor; virtual;
       procedure SetForegroundColor(const Value: TAlphaColor); virtual;
       procedure ApplyForegroundColor; virtual;
 
@@ -81,9 +91,11 @@ interface
       class function IsContentFormatSVG(const ContentFormat: String): Boolean; virtual;
       class function IsContentFormatAnimation(const ContentFormat: String): Boolean; virtual;
 
+      {Lifetime management}
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
 
+      {Loading}
       procedure Load(const Stream: TStream; const ContentFormat: String); virtual;
       procedure LoadBitmap(const Stream: TStream; const ContentFormat: String); virtual;
       procedure LoadSVG(const Stream: TStream; const ContentFormat: String); virtual;
@@ -95,18 +107,18 @@ interface
     published
       const
         DEFAULT_AUTOSIZE = false;
+        DEFAULT_WRAP_MODE = TImageWrapMode.Stretch;
+        DEFAULT_LOOPING = true;
         DEFAULT_FOREGROUND_COLOR = TAlphaColorRec.Null; //claNull
         DEFAULT_SVG_TEXT = SVG_BLANK;
-        DEFAULT_WRAP_MODE = TImageWrapMode.Stretch;
 
       property Presenter: TControl read FPresenter write SetPresenter stored false;
 
-      property AutoSize: Boolean read FAutoSize write SetAutoSize default DEFAULT_AUTOSIZE;
+      property AutoSize: Boolean read IsAutoSize write SetAutoSize default DEFAULT_AUTOSIZE;
       property ContentSize: TSizeF read GetContentSize;
-
-      property WrapMode: TImageWrapMode read FWrapMode write SetWrapMode default DEFAULT_WRAP_MODE;
-
-      property ForegroundColor: TAlphaColor read FForegroundColor write SetForegroundColor default DEFAULT_FOREGROUND_COLOR;
+      property WrapMode: TImageWrapMode read GetWrapMode write SetWrapMode default DEFAULT_WRAP_MODE;
+      property Looping: Boolean read IsLooping write SetLooping default DEFAULT_LOOPING;
+      property ForegroundColor: TAlphaColor read GetForegroundColor write SetForegroundColor default DEFAULT_FOREGROUND_COLOR;
 
       property Bitmap: TBitmap read GetBitmap write SetBitmap stored HasNonEmptyBitmap default nil;
       property SVGText: String read GetSVGText write SetSVGText stored HasNonDefaultSVG;
@@ -124,7 +136,7 @@ implementation
 
   {$REGION 'TMediaDisplay'}
 
-  {$region 'Initialization / Destruction'}
+  {$region 'Lifetime management'}
 
   constructor TMediaDisplay.Create(AOwner: TComponent);
   begin
@@ -134,6 +146,8 @@ implementation
     //if not (csLoading in ComponentState) then
     //begin
       AutoSize := DEFAULT_AUTOSIZE;
+      WrapMode := DEFAULT_WRAP_MODE;
+      Looping := DEFAULT_LOOPING;
       ForegroundColor := DEFAULT_FOREGROUND_COLOR;
       SVGText := DEFAULT_SVG_TEXT;
     //end;
@@ -164,27 +178,18 @@ implementation
 
     Value.Parent := Self; //don't place in "with" statement, Self has to be the TMediaDisplay instance
 
-    //Init per-presenter class type
+    (*
+    if (Value is TSkAnimatedImage) then //for Animation
+      (Value as TSkAnimatedImage).Animation.Enabled := true; //default is already true
+    *)
 
-    if (Value is TImage) then //for Bitmaps //Note: don't need to check this last, since TSkSvg and TSkAnimatedImage don't descend from TImage
-    begin
-      var img := (Value as TImage);
-      img.WrapMode := TImageWrapMode.Stretch; //stretch the Bitmap
-    end
+    ApplyWrapMode;
+    ApplyLooping;
+  end;
 
-    else if (Value is TSkSvg) then //for SVG
-    begin
-      var img := (Value as TSkSvg);
-      img.Svg.WrapMode := TSkSvgWrapMode.Stretch; //stretch the SVG
-    end
-
-    else if (Value is TSkAnimatedImage) then //for Animation
-    begin
-      var img := (Value as TSkAnimatedImage);
-      img.WrapMode := TSkAnimatedImageWrapMode.Stretch; //stretch the Animation
-      //img.Animation.Enabled := true; //default is already true
-      //img.Animation.Loop := true; //default is already true
-    end;
+  function TMediaDisplay.GetPresenter: TControl;
+  begin
+    result := FPresenter;
   end;
 
   procedure TMediaDisplay.SetPresenter(const Value: TControl);
@@ -243,15 +248,21 @@ implementation
 
   {$region 'AutoSize'}
 
-  procedure TMediaDisplay.SetAutoSize(const Value: Boolean);
+  function TMediaDisplay.IsAutoSize: Boolean;
   begin
-    if Value then DoAutoSize;
-    FAutoSize := Value;
+    result := FAutoSize;
   end;
 
-  procedure TMediaDisplay.DoAutoSize;
+  procedure TMediaDisplay.SetAutoSize(const Value: Boolean);
   begin
-    Size.Size := ContentSize;
+    FAutoSize := Value;
+    ApplyAutoSize;
+  end;
+
+  procedure TMediaDisplay.ApplyAutoSize;
+  begin
+    if FAutoSize then
+      Size.Size := ContentSize;
   end;
 
   function TMediaDisplay.GetContentSize: TSizeF;
@@ -273,13 +284,18 @@ implementation
 
   {$region 'WrapMode'}
 
+  function TMediaDisplay.GetWrapMode: TImageWrapMode;
+  begin
+    result := FWrapMode;
+  end;
+
   procedure TMediaDisplay.SetWrapMode(const Value: TImageWrapMode);
   begin
     FWrapMode := Value;
-    DoWrap;
+    ApplyWrapMode;
   end;
 
-  procedure TMediaDisplay.DoWrap;
+  procedure TMediaDisplay.ApplyWrapMode;
   begin
     if (FPresenter is TImage) then //for Bitmaps
       (FPresenter as TImage).WrapMode := FWrapMode
@@ -293,7 +309,33 @@ implementation
 
   {$endregion}
 
+  {$region 'Looping (for Animation)'}
+
+  function TMediaDisplay.IsLooping: Boolean;
+  begin
+    result := FLooping;
+  end;
+
+  procedure TMediaDisplay.SetLooping(const Value: Boolean);
+  begin
+    FLooping := Value;
+    ApplyLooping;
+  end;
+
+  procedure TMediaDisplay.ApplyLooping;
+  begin
+    if FLooping and (FPresenter is TSkAnimatedImage) then
+      (FPresenter as TSkAnimatedImage).Animation.Loop := true;
+  end;
+
+  {$endregion}
+
   {$region 'ForegroundColor'}
+
+  function TMediaDisplay.GetForegroundColor: TAlphaColor;
+  begin
+    result := FForegroundColor;
+  end;
 
   procedure TMediaDisplay.SetForegroundColor(const Value: TAlphaColor);
   begin
@@ -332,11 +374,9 @@ implementation
 
   procedure TMediaDisplay.InitContent;
   begin
-    DoWrap;
-
-    if FAutoSize then
-      DoAutoSize;
-
+      ApplyAutoSize;
+    //ApplyWrapMode; //doing at InitPresenter
+    //ApplyLooping; //doing at InitPresenter
     ApplyForegroundColor;
   end;
 
@@ -368,7 +408,7 @@ implementation
     else
       SetBitmapPresenter.Bitmap := Value; //this does "Assign" internally and copies the Bitmap
 
-    InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
+    InitContent; //this does ApplyAutoSize etc.
   end;
 
   procedure TMediaDisplay.SetBitmap(const Value: TBitmapSurface);
@@ -378,7 +418,7 @@ implementation
     else
       SetBitmapPresenter.Bitmap.Assign(Value); //we can Assign TBitmapSurfaces to TBitmaps
 
-    InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
+    InitContent; //this does ApplyAutoSize etc.
   end;
 
   {$endregion}
@@ -400,7 +440,7 @@ implementation
       SetSVGPresenter.Svg.Source := InlineSvgStyle(Value); //SKIA doesn't support styles in SVG, replace class attributes with inline presentation attributes
     end;
 
-    InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
+    InitContent; //this does ApplyAutoSize etc.
   end;
 
   {$endregion}
@@ -459,7 +499,7 @@ implementation
   
   {$endregion}
 
-  {$region 'Load'}
+  {$region 'Loading'}
 
   procedure TMediaDisplay.Load(const Stream: TStream; const ContentFormat: String);
   begin
@@ -483,7 +523,7 @@ implementation
 
     LImage.Bitmap.LoadFromStream(Stream);
 
-    InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
+    InitContent; //this does ApplyAutoSize etc.
   end;
 
   procedure TMediaDisplay.LoadSVG(const Stream: TStream; const ContentFormat: String);
@@ -498,7 +538,7 @@ implementation
     var s := TStringList.Create(#0, #13);
     try
       s.LoadFromStream(Stream);
-      SVGText := s.DelimitedText; //use this instead of setting SVGText of the SVG presenter directly so that any extra side-effects like DoWrap and DoAutoSize are done in one place
+      SVGText := s.DelimitedText; //use this instead of setting SVGText of the SVG presenter directly so that any extra side-effects like ApplyWrapMode and ApplyAutoSize are done in one place
     finally
       FreeAndNil(s);
     end;
@@ -513,7 +553,7 @@ implementation
 
     LAnimation.LoadFromStream(Stream);
 
-    InitContent; //this does DoAutoSize (if AutoSize is set) and DoWrap
+    InitContent; //this does ApplyAutoSize etc.
   end;
 
   {$endregion}

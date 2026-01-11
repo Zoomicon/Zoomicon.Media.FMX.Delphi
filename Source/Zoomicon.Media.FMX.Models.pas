@@ -9,6 +9,7 @@ interface
     System.Classes, //for TStream
     System.Types, //for TSizeF
     System.UITypes, //for TAlphaColor
+    FMX.Controls, //for TControl
     FMX.Graphics, //for TBitmap
     FMX.Media, //for TMediaTime
     FMX.Surfaces, //for TBitmapSurface
@@ -142,18 +143,27 @@ interface
 
   type
     IMediaDisplay = interface
+      {Presenter}
+      procedure InitPresenter(const Value: TControl);
+      function GetPresenter: TControl;
+      procedure SetPresenter(const Value: TControl);
+
       {AutoSize}
+      function IsAutoSize: Boolean;
       procedure SetAutoSize(const Value: Boolean);
-      procedure DoAutoSize;
       function GetContentSize: TSizeF;
 
       {WrapMode}
+      function GetWrapMode: TImageWrapMode;
       procedure SetWrapMode(const Value: TImageWrapMode);
-      procedure DoWrap;
+
+      {Looping (for Animation)}
+      function IsLooping: Boolean;
+      procedure SetLooping(const Value: Boolean);
 
       {ForegroundColor}
+      function GetForegroundColor: TAlphaColor;
       procedure SetForegroundColor(const Value: TAlphaColor);
-      procedure ApplyForegroundColor;
 
       {Bitmap}
       function GetBitmap: TBitmap;
@@ -168,10 +178,19 @@ interface
       function GetSVGLines: TStrings;
       procedure SetSVGLines(const Value: TStrings);
 
+      {Loading}
       procedure Load(const Stream: TStream; const ContentFormat: String);
       procedure LoadBitmap(const Stream: TStream; const ContentFormat: String);
       procedure LoadSVG(const Stream: TStream; const ContentFormat: String);
       procedure LoadAnimation(const Stream: TStream; const ContentFormat: String);
+
+      property Presenter: TControl read FPresenter write SetPresenter stored false;
+
+      property AutoSize: Boolean read IsAutoSize write SetAutoSize;
+      property ContentSize: TSizeF read GetContentSize;
+      property WrapMode: TImageWrapMode read GetWrapMode write SetWrapMode;
+      property Looping: Boolean read IsLooping write SetLooping;
+      property ForegroundColor: TAlphaColor read GetForegroundColor write SetForegroundColor;
 
       property Bitmap: TBitmap read GetBitmap write SetBitmap;
       property SVGText: String read GetSVGText write SetSVGText;

@@ -1,13 +1,13 @@
 {
 	"name": "Zoomicon.Media.FMX",
 	"description": "Media User Interface controls for Delphi FMX",
-	"version": "7.4",
+	"version": "7.5",
 	"homepage": "",
 	"mainsrc": "",
 	"projects": [
 		"Zoomicon.Media.FMX.dproj"
 	],
 	"dependencies": {
-		"github.com/zoomicon/zoomicon.generics.delphi": ">=3.3.0"
+		"github.com/zoomicon/zoomicon.generics.delphi": ">=3.4.0"
 	}
 }
