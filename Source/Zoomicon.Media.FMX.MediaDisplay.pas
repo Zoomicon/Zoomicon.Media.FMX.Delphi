@@ -324,7 +324,7 @@ implementation
 
   procedure TMediaDisplay.ApplyLooping;
   begin
-    if FLooping and (FPresenter is TSkAnimatedImage) then
+    if (FPresenter is TSkAnimatedImage) then
       (FPresenter as TSkAnimatedImage).Animation.Loop := true;
   end;
 
@@ -374,9 +374,9 @@ implementation
 
   procedure TMediaDisplay.InitContent;
   begin
-      ApplyAutoSize;
-    //ApplyWrapMode; //doing at InitPresenter
-    //ApplyLooping; //doing at InitPresenter
+    ApplyAutoSize;
+    ApplyWrapMode; //doing at InitPresenter, but seems to be needed here again
+    ApplyLooping; //doing at InitPresenter, but do here again (after setting content) just in case
     ApplyForegroundColor;
   end;
 
