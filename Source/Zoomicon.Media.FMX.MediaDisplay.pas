@@ -67,6 +67,8 @@ interface
       function IsLooping: Boolean; virtual;
       procedure SetLooping(const Value: Boolean); virtual;
       procedure ApplyLooping; virtual;
+      procedure AnimationProcess(Sender: TObject);
+      //procedure AnimationFinish(Sender: TObject);
 
       {ForegroundColor}
       function GetForegroundColor: TAlphaColor; virtual;
@@ -325,7 +327,31 @@ implementation
   procedure TMediaDisplay.ApplyLooping;
   begin
     if (FPresenter is TSkAnimatedImage) then
-      (FPresenter as TSkAnimatedImage).Animation.Loop := true;
+      with (FPresenter as TSkAnimatedImage) do
+      begin
+        Animation.Loop := FLooping;
+        OnAnimationProcess := AnimationProcess;
+        //OnAnimationFinish := AnimationFinish;
+      end;
+  end;
+
+  (*
+  procedure TMediaDisplay.AnimationFinish(Sender: TObject);
+  begin
+    with TSkAnimatedImage(Sender).Animation do
+    begin
+      Progress := 1.0; // Force the animation to stay at the last frame
+      Pause := True;
+      Enabled := False; // Optional: explicitly disable to prevent any re-triggering
+    end;
+  end;
+  *)
+
+  procedure TMediaDisplay.AnimationProcess(Sender: TObject);
+  begin
+    with TSkAnimatedImage(Sender).Animation do
+      if (Progress >= 0.99) and (not Loop) then // When animation reaches the end, stop it from restarting
+        StopAtCurrent; // Force it to stay at the end
   end;
 
   {$endregion}
@@ -496,7 +522,7 @@ implementation
   begin
     result := (ContentFormat = EXT_SVG); //TODO: add support for .SVGZ (Gzipped SVG)
   end;
-  
+
   {$endregion}
 
   {$region 'Loading'}
@@ -582,3 +608,4 @@ initialization
   RegisterSerializationClasses; //don't call Register here, it's called by the IDE automatically on a package installation (fails at runtime)
 
 end.
+
