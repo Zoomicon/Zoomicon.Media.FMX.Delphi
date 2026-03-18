@@ -129,4 +129,18 @@
             <Enabled>True</Enabled>
         </BuildGroupProject>
     </ItemGroup>
+    <ItemGroup Condition="'$(BuildGroup)'=='Linux'">
+        <BuildGroupProject Include="Demo\Media_Demo.dproj">
+            <ProjectGuid>{37F3796D-905A-444E-81D9-3983DFCF23B7}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Linux64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+        <BuildGroupProject Include="Source\Zoomicon.Media.FMX.dproj">
+            <ProjectGuid>{6E2C0463-4BB6-4FCC-AA63-3D1E63BDF956}</ProjectGuid>
+            <Configurations>Release</Configurations>
+            <Platforms>Linux64</Platforms>
+            <Enabled>True</Enabled>
+        </BuildGroupProject>
+    </ItemGroup>
 </Project>
